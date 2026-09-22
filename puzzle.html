@@ -26,59 +26,61 @@
             flex-direction: column;
             width: 100vw;
             height: 100vh;
-            padding: 15px 20px;
+            padding: 10px 15px;
             background: radial-gradient(circle at 50% 30%, #14264a 0%, #0a0f1d 80%);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .header h1 {
             color: #00ffff;
             text-shadow: 0 0 15px #00ffff;
-            font-size: 1.6em;
+            font-size: 1.4em;
             letter-spacing: 2px;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         .header p {
             color: #8899bb;
-            font-size: 0.85em;
+            font-size: 0.8em;
         }
 
         .game-area {
             display: flex;
             flex: 1;
-            gap: 15px;
+            gap: 12px;
             min-height: 0;
         }
 
+        /* Лоток с кусочками */
         .tray {
-            width: 38%;
+            width: 32%;
             background: rgba(0, 30, 60, 0.5);
             border: 2px dashed #00ffff66;
             border-radius: 12px;
-            padding: 10px;
+            padding: 30px 8px 8px 8px;
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
             gap: 6px;
             position: relative;
-            overflow: hidden;
+            overflow: auto;
         }
 
         .tray-title {
             position: absolute;
-            top: 5px;
-            left: 10px;
+            top: 6px;
+            left: 12px;
             font-size: 0.7em;
             color: #00ffff99;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
+        /* Игровое поле 3x3 */
         .board {
             flex: 1;
             background: rgba(0, 30, 60, 0.3);
@@ -99,20 +101,30 @@
             background-image: url('puzzle.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 0.08;
+            opacity: 0.07;
             pointer-events: none;
         }
 
+        /* Ячейка — кусочек будет растягиваться по ней */
         .cell {
             border: 1px solid rgba(0, 255, 255, 0.15);
             position: relative;
             z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        /* Ячейка с правильным кусочком — убираем подсветку */
+        .cell[data-filled="true"] {
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        /* Кусочек пазла — АДАПТИВНЫЙ */
         .piece {
-            width: 90px;
-            height: 90px;
-            background-size: 270px 270px;
+            width: 100%;
+            height: 100%;
+            background-size: 300% 300%; /* 3x3 = 300% */
             background-repeat: no-repeat;
             border-radius: 6px;
             cursor: grab;
@@ -121,26 +133,41 @@
             z-index: 10;
         }
 
+        /* В лотке кусочек имеет фиксированный размер, чтобы удобно было брать */
+        .tray .piece {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+        }
+
+        /* На поле кусочек растягивается по ячейке */
+        .board .piece {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
         .piece:hover {
-            transform: scale(1.05);
             box-shadow: 0 0 15px #00ffff;
         }
 
         .piece.dragging {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: grabbing;
         }
 
         .piece.placed {
             cursor: default;
-            box-shadow: none;
         }
 
+        /* Адаптив для маленьких экранов */
         @media (max-width: 900px) {
-            .piece { width: 70px; height: 70px; background-size: 210px 210px; }
-            .tray { width: 45%; }
+            .tray .piece { width: 60px; height: 60px; }
+            .tray { width: 35%; }
         }
 
+        /* Победный экран */
         .win-overlay {
             position: fixed;
             inset: 0;
@@ -201,15 +228,15 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .btn-shuffle {
             background: transparent;
             border: 2px solid #ff0055;
             color: #ff0055;
-            padding: 8px 20px;
-            font-size: 0.9em;
+            padding: 6px 18px;
+            font-size: 0.85em;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
@@ -262,7 +289,6 @@
 </div>
 
 <script>
-    const SIZE = 90;
     const COLS = 3;
     const ROWS = 3;
     const IMAGE_URL = 'puzzle.jpg';
@@ -283,9 +309,10 @@
         const row = Math.floor(index / COLS);
         const col = index % COLS;
 
+        // Фон — кусок картинки 3x3
         piece.style.backgroundImage = `url('${IMAGE_URL}')`;
-        piece.style.backgroundSize = `${COLS * SIZE}px ${ROWS * SIZE}px`;
-        piece.style.backgroundPosition = `-${col * SIZE}px -${row * SIZE}px`;
+        piece.style.backgroundSize = `${COLS * 100}% ${ROWS * 100}%`;
+        piece.style.backgroundPosition = `${(col * 100) / (COLS - 1)}% ${(row * 100) / (ROWS - 1)}%`;
 
         piece.addEventListener('dragstart', (e) => {
             draggedPiece = piece;
@@ -330,7 +357,7 @@
         cell.addEventListener('dragover', (e) => {
             e.preventDefault();
             if (cell.dataset.filled === 'true') return;
-            cell.style.background = 'rgba(0, 255, 255, 0.1)';
+            cell.style.background = 'rgba(0, 255, 255, 0.15)';
         });
 
         cell.addEventListener('dragleave', () => {
@@ -352,7 +379,7 @@
                 cell.dataset.filled = 'true';
                 checkWin();
             } else {
-                cell.style.background = 'rgba(255, 0, 85, 0.3)';
+                cell.style.background = 'rgba(255, 0, 85, 0.4)';
                 setTimeout(() => { cell.style.background = ''; }, 500);
             }
         });
@@ -370,6 +397,7 @@
         }
     }
 
+    // --- Сенсорная поддержка ---
     let touchPiece = null;
     let touchOffsetX = 0;
     let touchOffsetY = 0;
@@ -383,6 +411,8 @@
         touchOffsetX = touch.clientX - rect.left;
         touchOffsetY = touch.clientY - rect.top;
         piece.style.position = 'fixed';
+        piece.style.width = rect.width + 'px';
+        piece.style.height = rect.height + 'px';
         piece.style.zIndex = '999';
         piece.style.pointerEvents = 'none';
         moveAt(touch.clientX, touch.clientY);
@@ -419,7 +449,7 @@
             } else {
                 resetTouchPiece(piece);
                 tray.appendChild(piece);
-                cell.style.background = 'rgba(255, 0, 85, 0.3)';
+                cell.style.background = 'rgba(255, 0, 85, 0.4)';
                 setTimeout(() => { cell.style.background = ''; }, 500);
             }
         } else {
@@ -437,6 +467,8 @@
 
     function resetTouchPiece(piece) {
         piece.style.position = '';
+        piece.style.width = '';
+        piece.style.height = '';
         piece.style.zIndex = '';
         piece.style.left = '';
         piece.style.top = '';
