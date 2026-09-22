@@ -304,7 +304,8 @@
                 <div class="card">
                     <h3>Реши квадратное уравнение:</h3>
                     <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
-                    <input type="text" id="userAnswer" placeholder="Ответ (например: 2, 3)">
+                    <!-- Подсказка теперь нейтральная, без спойлера -->
+                    <input type="text" id="userAnswer" placeholder="Введите два корня через запятую">
                     <button class="btn-check" onclick="checkAnswer()">Проверить</button>
                     <div id="resultMessage" style="margin-top: 6px; text-align: center; font-size: 0.85em;"></div>
                 </div>
@@ -353,6 +354,23 @@
         }, 2500);
     }
 
+    // Красивое форматирование уравнения
+    function formatEquation(b, c) {
+        let result = "x² ";
+        if (b !== 0) {
+            if (b === 1) result += "+ x ";
+            else if (b === -1) result += "- x ";
+            else if (b > 0) result += "+ " + b + "x ";
+            else result += "- " + Math.abs(b) + "x ";
+        }
+        if (c !== 0) {
+            if (c > 0) result += "+ " + c;
+            else result += "- " + Math.abs(c);
+        }
+        result += " = 0";
+        return result;
+    }
+
     let currentEquation = { a: 1, b: -5, c: 6 };
     let correctRoots = [2, 3];
     let isNewTaskSolved = false;
@@ -371,7 +389,12 @@
             return;
         }
 
-        const userRoots = userInput.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)).sort((a,b) => a-b);
+        const userRoots = userInput
+            .split(/[,;\s]+/)
+            .map(s => parseFloat(s.trim()))
+            .filter(n => !isNaN(n))
+            .sort((a,b) => a-b);
+        
         const sortedCorrect = [...correctRoots].sort((a,b) => a-b);
 
         let isCorrect = false;
@@ -396,9 +419,13 @@
         const r1 = correctRoots[0];
         const r2 = correctRoots[1];
 
+        const sign1 = r1 >= 0 ? "-" : "+";
+        const sign2 = r2 >= 0 ? "-" : "+";
+        const factored = `(x ${sign1} ${Math.abs(r1)})(x ${sign2} ${Math.abs(r2)}) = 0`;
+
         expText.innerHTML = `
-            x² ${b > 0 ? '+' : ''}${b}x ${c > 0 ? '+' : ''}${c} = 0<br>
-            (x ${r1 > 0 ? '-' : '+'} ${Math.abs(r1)})(x ${r2 > 0 ? '-' : '+'} ${Math.abs(r2)}) = 0
+            ${formatEquation(b, c)}<br>
+            ${factored}
         `;
         expResult.innerHTML = `x₁ = ${r1}, x₂ = ${r2}`;
 
@@ -408,6 +435,18 @@
                 document.getElementById('stage-final').style.display = 'block';
             }, 4000);
         }
+    }
+
+    // Генерация случайного уравнения без нулевых b и c
+    function generateRandomEquation() {
+        let r1, r2, b, c;
+        do {
+            r1 = Math.floor(Math.random() * 11) - 5;
+            r2 = Math.floor(Math.random() * 11) - 5;
+            b = -(r1 + r2);
+            c = r1 * r2;
+        } while (b === 0 || c === 0 || r1 === r2 || Math.abs(r1) > 6 || Math.abs(r2) > 6);
+        return { r1, r2, b, c };
     }
 
     function generateNewTask() {
@@ -426,10 +465,7 @@
             btnGen.disabled = false;
             btnGen.style.opacity = '1';
             
-            const r1 = Math.floor(Math.random() * 8) - 4;
-            const r2 = Math.floor(Math.random() * 8) - 4;
-            const b = -(r1 + r2);
-            const c = r1 * r2;
+            const { r1, r2, b, c } = generateRandomEquation();
             
             currentEquation = { a: 1, b: b, c: c };
             correctRoots = [r1, r2];
@@ -437,7 +473,7 @@
             isNewTaskSolved = false;
 
             const eqDisplay = document.getElementById('equationDisplay');
-            eqDisplay.innerHTML = `x² ${b > 0 ? '+' : ''}${b}x ${c > 0 ? '+' : ''}${c} = 0`;
+            eqDisplay.innerHTML = formatEquation(b, c);
             
             eqDisplay.classList.remove('new-task');
             void eqDisplay.offsetWidth;
