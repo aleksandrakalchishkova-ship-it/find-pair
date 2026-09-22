@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Найди пару: задача → способ решения</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 0%, #1b2a4a, #0a0f1e 70%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #e8f0ff;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 10px 0 4px;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .subtitle { color: #8fa9c9; font-size: 14px; margin-bottom: 10px; }
+  #hud {
+    display: flex;
+    gap: 24px;
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: #b8cbe6;
+  }
+  #hud b { color: #4fe3ff; }
+  canvas {
+    background: #0e1730;
+    border-radius: 14px;
+    box-shadow: 0 0 40px rgba(0, 180, 255, 0.25), inset 0 0 60px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  #msg {
+    margin-top: 12px;
+    min-height: 24px;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .ok { color: #4fffb0; }
+  .err { color: #ff6b8a; }
+  .win { color: #ffd84f; }
+  #reset {
+    margin-top: 10px;
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    background: #12294d;
+    color: #e8f0ff;
+    border: 2px solid #4fe3ff;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  #reset:hover { background: #4fe3ff; color: #06101f; }
+</style>
+</head>
+<body>
+  <h1>Найди пару: задача → способ решения</h1>
+  <div class="subtitle">Кликните по карточке слева, затем по подходящей справа</div>
+  <div id="hud">
+    <span>Найдено: <b id="found">0</b>/<span id="total">5</span></span>
+    <span>Ошибки: <b id="errors">0</b></span>
+    <span>Время: <b id="time">0</b> c</span>
+  </div>
+  <canvas id="game" width="900" height="520"></canvas>
+  <div id="msg"></div>
+  <button id="reset">Заново</button>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const msgEl = document.getElementById('msg');
+const foundEl = document.getElementById('found');
+const errorsEl = document.getElementById('errors');
+const timeEl = document.getElementById('time');
+const totalEl = document.getElementById('total');
+
+// ==== ЛЕВАЯ КОЛОНКА: ЗАДАЧИ ====
+const tasks = [
+  { id: 't1', text: 'Нужно быстро найти\nинформацию в базе' },
+  { id: 't2', text: 'Нужно выстроить\nпоследовательность действий' },
+  { id: 't3', text: 'Нужно сравнить\nдва числа' },
+  { id: 't4', text: 'Нужно найти\nкратчайший маршрут' },
+  { id: 't5', text: 'Нужно упорядочить\nсписок по алфавиту' }
+];
+
+// ==== ПРАВАЯ КОЛОНКА: СПОСОБЫ РЕШЕНИЯ ====
+const methods = [
+  { id: 'm1', text: 'Поиск и сортировка' },
+  { id: 'm2', text: 'Алгоритм' },
+  { id: 'm3', text: 'Сравнение' },
+  { id: 'm4', text: 'Поиск пути' },
+  { id: 'm5', text: 'Сортировка' }
+];
+
+// ==== КРИТЕРИЙ ПРАВИЛЬНОСТИ (ключ соответствий) ====
+const correctPairs = {
+  t1: 'm1', // быстро найти информацию -> Поиск и сортировка
+  t2: 'm2', // последовательность действий -> Алгоритм
+  t3: 'm3', // сравнить два числа -> Сравнение
+  t4: 'm4', // кратчайший маршрут -> Поиск пути
+  t5: 'm5'  // упорядочить по алфавиту -> Сортировка
+};
+
+// ==== Состояние игры ====
+let leftCards = [];   // {id, text, x, y, w, h}
+let rightCards = [];
+let selectedLeft = null;
+let matchedLeft = new Set();
+let matchedRight = new Set();
+let errors = 0;
+let startTime = 0;
+let timerId = null;
+let wrongFlash = null; // {leftId, rightId, until}
+
+const CARD_W = 300;
+const CARD_H = 78;
+const LEFT_X = 60;
+const RIGHT_X = W - 60 - CARD_W;
+const TOP_Y = 40;
+const GAP = 14;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function wrapText(text, maxWidth) {
+  // поддержка явного переноса по \n и авто-перенос по словам
+  const lines = [];
+  text.split('\n').forEach(part => {
+    const words = part.split(' ');
+    let line = '';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = w;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+  });
+  return lines;
+}
+
+function buildLayout() {
+  leftCards = tasks.map((t, i) => ({
+    ...t,
+    x: LEFT_X,
+    y: TOP_Y + i * (CARD_H + GAP),
+    w: CARD_W,
+    h: CARD_H
+  }));
+
+  const shuffledMethods = shuffle(methods);
+  rightCards = shuffledMethods.map((m, i) => ({
+    ...m,
+    x: RIGHT_X,
+    y: TOP_Y + i * (CARD_H + GAP),
+    w: CARD_W,
+    h: CARD_H
+  }));
+}
+
+function reset() {
+  buildLayout();
+  selectedLeft = null;
+  matchedLeft = new Set();
+  matchedRight = new Set();
+  errors = 0;
+  wrongFlash = null;
+  msgEl.textContent = '';
+  msgEl.className = '';
+  errorsEl.textContent = '0';
+  foundEl.textContent = '0';
+  totalEl.textContent = tasks.length;
+  startTime = performance.now();
+  timeEl.textContent = '0';
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(() => {
+    timeEl.textContent = Math.floor((performance.now() - startTime) / 1000);
+  }, 200);
+  draw();
+}
+
+// ==== Геометрия ====
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function pointInRect(mx, my, r) {
+  return mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h;
+}
+
+function hitTest(mx, my) {
+  for (const c of leftCards) if (pointInRect(mx, my, c)) return { side: 'L', card: c };
+  for (const c of rightCards) if (pointInRect(mx, my, c)) return { side: 'R', card: c };
+  return null;
+}
+
+// ==== Отрисовка ====
+function drawCard(card, opts) {
+  const { selected, matched, wrong } = opts;
+
+  // тень
+  ctx.save();
+  ctx.shadowColor = matched ? 'rgba(79, 255, 176, 0.55)'
+                   : wrong ? 'rgba(255, 107, 138, 0.6)'
+                   : selected ? 'rgba(79, 227, 255, 0.6)'
+                   : 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = matched || selected || wrong ? 22 : 12;
+  ctx.shadowOffsetY = 4;
+
+  // фон
+  const grad = ctx.createLinearGradient(card.x, card.y, card.x, card.y + card.h);
+  if (matched) {
+    grad.addColorStop(0, '#114a3a');
+    grad.addColorStop(1, '#0c2f27');
+  } else if (wrong) {
+    grad.addColorStop(0, '#4a1a26');
+    grad.addColorStop(1, '#2e0f18');
+  } else if (selected) {
+    grad.addColorStop(0, '#0f3f5a');
+    grad.addColorStop(1, '#0a2233');
+  } else {
+    grad.addColorStop(0, '#16233f');
+    grad.addColorStop(1, '#0d1729');
+  }
+  ctx.fillStyle = grad;
+  roundRect(ctx, card.x, card.y, card.w, card.h, 12);
+  ctx.fill();
+
+  // рамка
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = matched ? '#4fffb0'
+                  : wrong ? '#ff6b8a'
+                  : selected ? '#4fe3ff'
+                  : '#2b3d63';
+  roundRect(ctx, card.x, card.y, card.w, card.h, 12);
+  ctx.stroke();
+  ctx.restore();
+
+  // текст
+  ctx.fillStyle = matched ? '#c8ffe8' : '#dbe8ff';
+  ctx.font = '600 15px "Segoe UI", Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  const padding = 14;
+  const maxW = card.w - padding * 2;
+  const lines = wrapText(card.text, maxW);
+  const lineH = 19;
+  const totalH = lines.length * lineH;
+  let ty = card.y + card.h / 2 - totalH / 2 + lineH / 2;
+  for (const line of lines) {
+    ctx.fillText(line, card.x + padding, ty);
+    ty += lineH;
+  }
+
+  // галочка / крестик
+  if (matched) {
+    ctx.fillStyle = '#4fffb0';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText('✓', card.x + card.w - 12, card.y + card.h / 2);
+  }
+}
+
+function drawConnections() {
+  // Соединяем только найденные пары
+  ctx.save();
+  for (const left of leftCards) {
+    if (!matchedLeft.has(left.id)) continue;
+    const rightId = correctPairs[left.id];
+    const right = rightCards.find(r => r.id === rightId);
+    if (!right) continue;
+
+    const x1 = left.x + left.w;
+    const y1 = left.y + left.h / 2;
+    const x2 = right.x;
+    const y2 = right.y + right.h / 2;
+
+    const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+    grad.addColorStop(0, 'rgba(79, 255, 176, 0.8)');
+    grad.addColorStop(1, 'rgba(79, 227, 255, 0.8)');
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    // кривая Безье для красоты
+    const cx1 = x1 + 60;
+    const cx2 = x2 - 60;
+    ctx.moveTo(x1, y1);
+    ctx.bezierCurveTo(cx1, y1, cx2, y2, x2, y2);
+    ctx.stroke();
+
+    // точки на концах
+    ctx.fillStyle = '#4fffb0';
+    ctx.beginPath(); ctx.arc(x1, y1, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x2, y2, 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // фоновая сетка
+  ctx.strokeStyle = 'rgba(79, 227, 255, 0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // заголовки колонок
+  ctx.fillStyle = '#6f8bb0';
+  ctx.font = 'bold 13px "Segoe UI", Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('ЗАДАЧА', LEFT_X, TOP_Y - 14);
+  ctx.fillText('СПОСОБ РЕШЕНИЯ', RIGHT_X, TOP_Y - 14);
+
+  // центральная линия-разделитель
+  ctx.strokeStyle = 'rgba(79, 227, 255, 0.15)';
+  ctx.setLineDash([6, 8]);
+  ctx.beginPath();
+  ctx.moveTo(W / 2, 20);
+  ctx.lineTo(W / 2, H - 20);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // соединения (за карточками)
+  drawConnections();
+
+  // карточки
+  const now = performance.now();
+  const wrongActive = wrongFlash && wrongFlash.until > now;
+
+  for (const c of leftCards) {
+    drawCard(c, {
+      selected: selectedLeft === c.id,
+      matched: matchedLeft.has(c.id),
+      wrong: wrongActive && wrongFlash.leftId === c.id
+    });
+  }
+  for (const c of rightCards) {
+    drawCard(c, {
+      selected: false,
+      matched: matchedRight.has(c.id),
+      wrong: wrongActive && wrongFlash.rightId === c.id
+    });
+  }
+
+  // затемнение при победе
+  if (matchedLeft.size === tasks.length) {
+    ctx.fillStyle = 'rgba(4, 10, 20, 0.65)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffd84f';
+    ctx.font = 'bold 44px "Segoe UI", Arial';
+    ctx.fillText('🏆 Все пары найдены!', W / 2, H / 2 - 30);
+
+    const t = Math.floor((performance.now() - startTime) / 1000);
+    ctx.fillStyle = '#cfe3ff';
+    ctx.font = '22px "Segoe UI", Arial';
+    ctx.fillText(`Время: ${t} с   •   Ошибок: ${errors}`, W / 2, H / 2 + 30);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// ==== Логика клика ====
+canvas.addEventListener('click', e => {
+  if (matchedLeft.size === tasks.length) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top) * (H / rect.height);
+
+  const hit = hitTest(mx, my);
+  if (!hit) return;
+
+  // --- Клик по ЛЕВОЙ колонке ---
+  if (hit.side === 'L') {
+    if (matchedLeft.has(hit.card.id)) {
+      msgEl.textContent = 'Эта карточка уже соединена';
+      msgEl.className = 'err';
+      return;
+    }
+    selectedLeft = hit.card.id;
+    msgEl.textContent = 'Теперь выберите способ решения справа';
+    msgEl.className = '';
+    return;
+  }
+
+  // --- Клик по ПРАВОЙ колонке ---
+  if (hit.side === 'R') {
+    if (matchedRight.has(hit.card.id)) {
+      msgEl.textContent = 'Этот способ уже использован';
+      msgEl.className = 'err';
+      return;
+    }
+    if (!selectedLeft) {
+      msgEl.textContent = 'Сначала выберите задачу слева';
+      msgEl.className = 'err';
+      return;
+    }
+
+    // ПРОВЕРКА ПРАВИЛЬНОСТИ
+    const expected = correctPairs[selectedLeft];
+    if (expected === hit.card.id) {
+      // верно
+      matchedLeft.add(selectedLeft);
+      matchedRight.add(hit.card.id);
+      foundEl.textContent = matchedLeft.size;
+
+      if (matchedLeft.size === tasks.length) {
+        msgEl.textContent = 'Победа! Все пары найдены 🎉';
+        msgEl.className = 'win';
+      } else {
+        msgEl.textContent = 'Верно! ✓';
+        msgEl.className = 'ok';
+      }
+      selectedLeft = null;
+    } else {
+      // ошибка
+      errors++;
+      errorsEl.textContent = errors;
+      wrongFlash = {
+        leftId: selectedLeft,
+        rightId: hit.card.id,
+        until: performance.now() + 600
+      };
+      msgEl.textContent = 'Неверно! Попробуйте другую пару';
+      msgEl.className = 'err';
+      selectedLeft = null;
+    }
+  }
+});
+
+document.getElementById('reset').addEventListener('click', reset);
+
+// Инициализация
+reset();
+</script>
+</body>
+</html>
