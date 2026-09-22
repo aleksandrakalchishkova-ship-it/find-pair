@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Собери пазл</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0f1d;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: #fff;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            padding: 15px 20px;
+            background: radial-gradient(circle at 50% 30%, #14264a 0%, #0a0f1d 80%);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            color: #00ffff;
+            text-shadow: 0 0 15px #00ffff;
+            font-size: 1.6em;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: #8899bb;
+            font-size: 0.85em;
+        }
+
+        .game-area {
+            display: flex;
+            flex: 1;
+            gap: 15px;
+            min-height: 0;
+        }
+
+        /* Лоток с кусочками */
+        .tray {
+            width: 38%;
+            background: rgba(0, 30, 60, 0.5);
+            border: 2px dashed #00ffff66;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tray-title {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-size: 0.7em;
+            color: #00ffff99;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Игровое поле */
+        .board {
+            flex: 1;
+            background: rgba(0, 30, 60, 0.3);
+            border: 2px solid #00ffff;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+        }
+
+        /* Фоновое изображение-подсказка */
+        .board::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('puzzle.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        /* Ячейки поля */
+        .cell {
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Кусочек пазла */
+        .piece {
+            width: 90px;
+            height: 90px;
+            background-size: 270px 270px; /* 3x3 */
+            background-repeat: no-repeat;
+            border-radius: 6px;
+            cursor: grab;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+            transition: transform 0.15s, box-shadow 0.15s;
+            z-index: 10;
+        }
+
+        .piece:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .piece.dragging {
+            opacity: 0.6;
+            cursor: grabbing;
+        }
+
+        .piece.placed {
+            cursor: default;
+            box-shadow: none;
+        }
+
+        /* Адаптив для маленьких экранов */
+        @media (max-width: 900px) {
+            .piece { width: 70px; height: 70px; background-size: 210px 210px; }
+            .tray { width: 45%; }
+        }
+
+        /* Победное сообщение */
+        .win-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 10, 25, 0.92);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+            animation: fadeIn 0.6s;
+        }
+
+        .win-overlay.show { display: flex; }
+
+        .win-title {
+            font-size: 3em;
+            color: #ffcc00;
+            text-shadow: 0 0 30px #ffcc00;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: pulseWin 1.5s infinite;
+        }
+
+        .win-subtitle {
+            font-size: 1.3em;
+            color: #00ffff;
+            margin-bottom: 40px;
+        }
+
+        .btn-restart {
+            background: #00ffff;
+            color: #0a0f1d;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-restart:hover {
+            background: #00ccff;
+            box-shadow: 0 0 25px #00ffff;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulseWin {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Кнопка обновления / перемешивания */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-shuffle {
+            background: transparent;
+            border: 2px solid #ff0055;
+            color: #ff0055;
+            padding: 8px 20px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-shuffle:hover {
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 20px #ff0055;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <div class="header">
+        <h1>🧩 СОБЕРИ ПАЗЛ</h1>
+        <p>Перетащи кусочки из лотка на игровое поле</p>
+    </div>
+
+    <div class="game-area">
+        <div class="tray" id="tray">
+            <div class="tray-title">Кусочки</div>
+        </div>
+        <div class="board" id="board">
+            <!-- 9 ячеек -->
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-shuffle" onclick="shufflePuzzle()">🔄 Перемешать заново</button>
+    </div>
+</div>
+
+<!-- Победный экран -->
+<div class="win-overlay" id="winOverlay">
+    <div class="win-title">🎉 ГОТОВО! 🎉</div>
+    <div class="win-subtitle">Вы собрали пазл!</div>
+    <button class="btn-restart" onclick="shufflePuzzle()">Собрать заново</button>
+</div>
+
+<script>
+    const SIZE = 90;           // Размер кусочка (должен совпадать с CSS)
+    const COLS = 3;            // 3 колонки
+    const ROWS = 3;            // 3 строки
+    const IMAGE_URL = 'puzzle.jpg';
+
+    const tray = document.getElementById('tray');
+    const board = document.getElementById('board');
+    const cells = board.querySelectorAll('.cell');
+    const winOverlay = document.getElementById('winOverlay');
+
+    let draggedPiece = null;
+
+    // Создать один кусочек пазла
+    function createPiece(index) {
+        const piece = document.createElement('div');
+        piece.className = 'piece';
+        piece.dataset.index = index;
+        piece.draggable = true;
+
+        // Позиция кусочка в исходной картинке (3x3)
+        const row = Math.floor(index / COLS);
+        const col = index % COLS;
+
+        // Устанавливаем фон — кусок картинки, соответствующий позиции
+        piece.style.backgroundImage = `url('${IMAGE_URL}')`;
+        piece.style.backgroundSize = `${COLS * SIZE}px ${ROWS * SIZE}px`;
+        piece.style.backgroundPosition = `-${col * SIZE}px -${row * SIZE}px`;
+
+        // Drag-and-drop события
+        piece.addEventListener('dragstart', (e) => {
+            draggedPiece = piece;
+            piece.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        piece.addEventListener('dragend', () => {
+            piece.classList.remove('dragging');
+            draggedPiece = null;
+        });
+
+        // Сенсорная поддержка (для тачскринов)
+        piece.addEventListener('touchstart', handleTouchStart, { passive: false });
+        piece.addEventListener('touchmove', handleTouchMove, { passive: false });
+        piece.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+        return piece;
+    }
+
+    // Инициализация — создаём все 9 кусочков и кладём в лоток в случайном порядке
+    function shufflePuzzle() {
+        winOverlay.classList.remove('show');
+        tray.innerHTML = '<div class="tray-title">Кусочки</div>';
+        
+        // Очищаем поле
+        cells.forEach(cell => {
+            cell.innerHTML = '';
+            cell.dataset.filled = 'false';
+        });
+
+        // Создаём кусочки в правильном порядке, затем перемешиваем
+        const indices = Array.from({ length: 9 }, (_, i) => i);
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+
+        indices.forEach(idx => {
+            const piece = createPiece(idx);
+            tray.appendChild(piece);
+        });
+    }
+
+    // Обработчики ячеек поля
+    cells.forEach(cell => {
+        cell.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (cell.dataset.filled === 'true') return;
+            cell.style.background = 'rgba(0, 255, 255, 0.1)';
+        });
+
+        cell.addEventListener('dragleave', () => {
+            cell.style.background = '';
+        });
+
+        cell.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cell.style.background = '';
+            if (!draggedPiece) return;
+
+            const pieceIndex = parseInt(draggedPiece.dataset.index);
+            const cellIndex = parseInt(cell.dataset.index);
+
+            // Проверяем, совпадает ли индекс кусочка с ячейкой
+            if (pieceIndex === cellIndex) {
+                // ПРАВИЛЬНО — фиксируем кусочек в ячейке
+                cell.appendChild(draggedPiece);
+                draggedPiece.classList.add('placed');
+                draggedPiece.draggable = false;
+                cell.dataset.filled = 'true';
+                checkWin();
+            } else {
+                // НЕПРАВИЛЬНО — показываем красную вспышку
+                cell.style.background = 'rgba(255, 0, 85, 0.3)';
+                setTimeout(() => { cell.style.background = ''; }, 500);
+            }
+        });
+    });
+
+    // Проверка победы
+    function checkWin() {
+        let filled = 0;
+        cells.forEach(cell => {
+            if (cell.dataset.filled === 'true') filled++;
+        });
+        if (filled === 9) {
+            setTimeout(() => {
+                winOverlay.classList.add('show');
+            }, 400);
+        }
+    }
+
+    // --- Сенсорная поддержка (для планшетов и тач-досок) ---
+    let touchPiece = null;
+    let touchOffsetX = 0;
+    let touchOffsetY = 0;
+
+    function handleTouchStart(e) {
+        const piece = e.currentTarget;
+        if (piece.classList.contains('placed')) return;
+        touchPiece = piece;
+        const rect = piece.getBoundingClientRect();
+        const touch = e.touches[0];
+        touchOffsetX = touch.clientX - rect.left;
+        touchOffsetY = touch.clientY - rect.top;
+        piece.style.position = 'fixed';
+        piece.style.zIndex = '999';
+        piece.style.pointerEvents = 'none';
+        moveAt(touch.clientX, touch.clientY);
+    }
+
+    function handleTouchMove(e) {
+        if (!touchPiece) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        moveAt(touch.clientX, touch.clientY);
+    }
+
+    function handleTouchEnd(e) {
+        if (!touchPiece) return;
+        const piece = touchPiece;
+        const touch = e.changedTouches[0];
+        
+        piece.style.display = 'none';
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        piece.style.display = '';
+        
+        // Ищем ячейку под пальцем
+        const cell = target ? target.closest('.cell') : null;
+        
+        if (cell && cell.dataset.filled !== 'true') {
+            const pieceIndex = parseInt(piece.dataset.index);
+            const cellIndex = parseInt(cell.dataset.index);
+
+            if (pieceIndex === cellIndex) {
+                // Правильно
+                resetTouchPiece(piece);
+                cell.appendChild(piece);
+                piece.classList.add('placed');
+                cell.dataset.filled = 'true';
+                checkWin();
+            } else {
+                // Неправильно — возвращаем в лоток
+                resetTouchPiece(piece);
+                tray.appendChild(piece);
+                cell.style.background = 'rgba(255, 0, 85, 0.3)';
+                setTimeout(() => { cell.style.background = ''; }, 500);
+            }
+        } else {
+            // Не попали в ячейку — возвращаем в лоток
+            resetTouchPiece(piece);
+            tray.appendChild(piece);
+        }
+        
+        touchPiece = null;
+    }
+
+    function moveAt(x, y) {
+        touchPiece.style.left = (x - touchOffsetX) + 'px';
+        touchPiece.style.top = (y - touchOffsetY) + 'px';
+    }
+
+    function resetTouchPiece(piece) {
+        piece.style.position = '';
+        piece.style.zIndex = '';
+        piece.style.left = '';
+        piece.style.top = '';
+        piece.style.pointerEvents = '';
+    }
+
+    // Запуск при загрузке
+    window.addEventListener('load', shufflePuzzle);
+</script>
+
+</body>
+</html>
