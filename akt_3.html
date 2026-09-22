@@ -16,9 +16,6 @@
             width: 100%;
             height: 100%;
             overflow: hidden !important;
-            position: fixed; /* Жестко фиксируем, чтобы не было прокрутки */
-            top: 0;
-            left: 0;
             background-color: #0a0f1d !important;
         }
 
@@ -28,7 +25,7 @@
             align-items: center;
             width: 100vw;
             height: 100vh;
-            overflow: hidden !important;
+            overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0a0f1d;
             background-image: url('bg.png');
@@ -37,6 +34,7 @@
             background-repeat: no-repeat;
             color: #fff;
             position: relative;
+            padding: 10px;
         }
 
         #superpower-app::before {
@@ -49,13 +47,13 @@
         }
 
         .container {
-            width: 90%;
-            max-width: 1100px;
+            width: 95%;
+            max-width: 950px;
             background: rgba(10, 20, 40, 0.9);
             border: 2px solid #00ffff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px 25px; /* Было 40px */
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
             position: relative;
             z-index: 1;
             backdrop-filter: blur(10px);
@@ -65,20 +63,21 @@
             text-align: center;
             color: #00ffff;
             text-shadow: 0 0 10px #00ffff;
-            font-size: 1.8em;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
+            font-size: 1.4em; /* Было 2em */
+            margin-bottom: 10px;
+            letter-spacing: 1px;
             font-weight: bold;
         }
 
+        /* --- ЭТАП 1 --- */
         #stage-hack {
             text-align: center;
-            padding: 40px 0;
+            padding: 20px 0; /* Было 50px */
         }
 
         .lock-icon {
-            font-size: 70px;
-            margin-bottom: 20px;
+            font-size: 50px; /* Было 80px */
+            margin-bottom: 10px;
             animation: pulse 2s infinite;
         }
 
@@ -92,9 +91,9 @@
             background-color: transparent !important;
             border: 2px solid #ff0055 !important;
             color: #ff0055 !important;
-            padding: 15px 40px;
-            font-size: 1.4em;
-            border-radius: 10px;
+            padding: 10px 30px; /* Было 15px 40px */
+            font-size: 1.1em; /* Было 1.5em */
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             text-transform: uppercase;
@@ -109,29 +108,34 @@
         }
 
         .key-message {
-            margin-top: 20px;
-            font-size: 1.2em;
+            margin-top: 15px;
+            font-size: 1em;
             color: #ffcc00;
             display: none;
             animation: fadeIn 0.5s;
         }
 
+        /* --- ЭТАП 2 --- */
         #stage-trainer {
             display: none;
+        }
+
+        #stage-trainer > p {
+            font-size: 0.9em;
         }
 
         .grid-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 15px;
+            gap: 12px; /* Было 20px */
+            margin-top: 10px;
         }
 
         .card {
             background: rgba(0, 30, 60, 0.6) !important;
             border: 1px solid #00ffff !important;
-            border-radius: 15px;
-            padding: 20px;
+            border-radius: 12px;
+            padding: 15px; /* Было 25px */
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
             color: #fff !important;
         }
@@ -140,29 +144,29 @@
             margin-top: 0;
             color: #00ffff !important;
             border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-            padding-bottom: 10px;
-            font-size: 1.1em;
+            padding-bottom: 6px;
+            font-size: 1em; /* Было 1.2em */
+            margin-bottom: 8px;
         }
 
         .equation {
-            font-size: 1.6em;
+            font-size: 1.4em; /* Было 1.8em */
             text-align: center;
-            margin: 15px 0;
+            margin: 12px 0;
             color: #fff !important;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 12px;
+            padding: 10px; /* Было 15px */
             background-color: #ffffff !important;
             border: 2px solid #00ffff !important;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #000000 !important;
-            font-size: 1.1em;
+            font-size: 1em; /* Было 1.2em */
             outline: none;
             display: block;
-            margin-bottom: 5px;
             color-scheme: light !important;
             -webkit-appearance: none;
             appearance: none;
@@ -175,13 +179,13 @@
 
         .btn-check {
             width: 100%;
-            padding: 12px;
-            margin-top: 12px;
+            padding: 10px; /* Было 15px */
+            margin-top: 10px;
             background-color: #00ffff !important;
             border: none !important;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #0a0f1d !important;
-            font-size: 1.1em;
+            font-size: 1em; /* Было 1.2em */
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
@@ -196,12 +200,13 @@
 
         .explanation {
             display: none;
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 10px;
+            padding: 10px;
             background: rgba(0, 255, 0, 0.1);
             border-left: 4px solid #00ff00;
             border-radius: 5px;
             color: #fff !important;
+            font-size: 0.95em;
         }
 
         .explanation.show {
@@ -212,25 +217,26 @@
         .correct { color: #00ff00; font-weight: bold; }
         .incorrect { color: #ff0055; font-weight: bold; }
 
+        /* --- ЭТАП 4 --- */
         #stage-final {
             display: none;
             text-align: center;
-            padding: 40px 0;
+            padding: 20px 0;
         }
 
         .final-title {
-            font-size: 2.5em;
+            font-size: 2em; /* Было 3em */
             color: #ffcc00;
             text-shadow: 0 0 20px #ffcc00;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-weight: bold;
             line-height: 1.2;
         }
 
         .final-subtitle {
-            font-size: 1.3em;
+            font-size: 1.1em; /* Было 1.5em */
             color: #00ffff;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         @keyframes fadeIn {
@@ -240,7 +246,19 @@
 
         @media (max-width: 768px) {
             .grid-layout { grid-template-columns: 1fr; }
-            .final-title { font-size: 2em; }
+            .final-title { font-size: 1.5em; }
+        }
+
+        /* Блок с ИИ-генератором */
+        .ai-block {
+            margin-top: 15px;
+            border-top: 1px solid rgba(0,255,255,0.3);
+            padding-top: 12px;
+            text-align: center;
+        }
+        .ai-block p {
+            font-size: 0.9em;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -251,7 +269,7 @@
         <div id="stage-hack">
             <div class="lock-icon">🔒</div>
             <h1>ДОСТУП ОГРАНИЧЕН</h1>
-            <p style="color: #aaa; margin-bottom: 30px;">Для открытия портала требуется ключ шифрования</p>
+            <p style="color: #aaa; margin-bottom: 20px; font-size: 0.9em;">Для открытия портала требуется ключ шифрования</p>
             <button class="btn-hack" onclick="hackPortal()">ВЗЛОМАТЬ ПОРТАЛ</button>
             <div class="key-message" id="keyMessage">
                 🔑 КЛЮЧ: <strong>ПРОМПТ</strong>
@@ -259,16 +277,16 @@
         </div>
 
         <div id="stage-trainer">
-            <h1 style="font-size: 1.4em; text-align: left;">⚡ АКТИВАЦИЯ СУПЕРСПОСОБНОСТИ</h1>
-            <p style="color: #aaa;">Используем ИИ для создания образовательных миров</p>
+            <h1 style="font-size: 1.2em; text-align: left;">⚡ АКТИВАЦИЯ СУПЕРСПОСОБНОСТИ</h1>
+            <p style="color: #aaa; margin-bottom: 5px;">Используем ИИ для создания образовательных миров</p>
             
             <div class="grid-layout">
                 <div class="card">
                     <h3>Реши квадратное уравнение:</h3>
                     <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
-                    <input type="text" id="userAnswer" placeholder="Введите ответ (например: 2, 3)">
+                    <input type="text" id="userAnswer" placeholder="Ответ (например: 2, 3)">
                     <button class="btn-check" onclick="checkAnswer()">Проверить</button>
-                    <div id="resultMessage" style="margin-top: 10px; text-align: center;"></div>
+                    <div id="resultMessage" style="margin-top: 8px; text-align: center; font-size: 0.9em;"></div>
                 </div>
 
                 <div class="card">
@@ -277,17 +295,17 @@
                         <p id="expText"></p>
                         <p class="correct" id="expResult"></p>
                     </div>
-                    <div id="emptyExp" style="color: #666; text-align: center; margin-top: 50px;">
-                        Нажмите "Проверить", чтобы увидеть решение
+                    <div id="emptyExp" style="color: #666; text-align: center; margin-top: 30px; font-size: 0.9em;">
+                        Нажмите "Проверить"
                     </div>
                 </div>
             </div>
 
-            <div style="margin-top: 20px; border-top: 1px solid rgba(0,255,255,0.3); padding-top: 15px; text-align: center;">
+            <div class="ai-block">
                 <p style="color: #ffcc00;">🤖 Попробуйте сами! Введите промпт:</p>
                 <input type="text" id="promptInput" value="Создай тренажер по квадратным уравнениям для школьников" style="width: 55%; display: inline-block; color: #000 !important;">
-                <button class="btn-check" style="width: auto; display: inline-block; padding: 12px 30px; margin-left: 10px;" onclick="generateNewTask()">Отправить</button>
-                <p style="color: #00ff00; font-size: 0.9em; margin-top: 10px;" id="aiStatus"></p>
+                <button class="btn-check" style="width: auto; display: inline-block; padding: 10px 20px; margin-left: 8px;" onclick="generateNewTask()">Отправить</button>
+                <p style="color: #00ff00; font-size: 0.85em; margin-top: 8px;" id="aiStatus"></p>
             </div>
         </div>
 
@@ -297,13 +315,12 @@
                 Мы не учим "быть учителем".<br>
                 Мы учим <strong>управлять вниманием и знаниями</strong> с помощью кода и математики.
             </div>
-            <p style="margin-top: 40px; color: #ffcc00; font-size: 1.2em;">✨ Это и есть ваша суперспособность ✨</p>
+            <p style="margin-top: 20px; color: #ffcc00; font-size: 1em;">✨ Это и есть ваша суперспособность ✨</p>
         </div>
     </div>
 </div>
 
 <script>
-    // Принудительно убираем прокрутку через JS (двойная защита)
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
@@ -361,7 +378,7 @@
         const status = document.getElementById('aiStatus');
         if (!prompt) return;
 
-        status.innerHTML = "⏳ Генерация нового тренажера...";
+        status.innerHTML = "⏳ Генерация...";
         
         setTimeout(() => {
             status.innerHTML = "✅ Тренажер сгенерирован!";
