@@ -12,11 +12,24 @@
             box-sizing: border-box;
         }
 
+        /* --- ЖЁСТКО СКРЫВАЕМ ЛЮБУЮ ПРОКРУТКУ --- */
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden !important;
             background-color: #0a0f1d !important;
+            scrollbar-width: none !important;   /* Firefox */
+            -ms-overflow-style: none !important; /* IE/Edge */
+        }
+
+        /* Скрываем скроллбар во всех браузерах на базе WebKit (Chrome, Safari) */
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
         }
 
         #superpower-app {
@@ -25,7 +38,7 @@
             align-items: center;
             width: 100vw;
             height: 100vh;
-            overflow: hidden;
+            overflow: hidden !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0a0f1d;
             background-image: url('bg.png');
@@ -33,8 +46,9 @@
             background-position: center;
             background-repeat: no-repeat;
             color: #fff;
-            position: relative;
-            padding: 10px;
+            position: fixed; /* Жёсткая фиксация */
+            top: 0;
+            left: 0;
         }
 
         #superpower-app::before {
@@ -46,25 +60,28 @@
             z-index: 0;
         }
 
+        /* --- КОНТЕЙНЕР: МАКСИМАЛЬНО КОМПАКТНО --- */
         .container {
             width: 95%;
-            max-width: 950px;
+            max-width: 900px;
+            max-height: 96vh; /* Ограничиваем по высоте экрана */
             background: rgba(10, 20, 40, 0.9);
             border: 2px solid #00ffff;
             border-radius: 15px;
-            padding: 20px 25px; /* Было 40px */
+            padding: 15px 20px;
             box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
             position: relative;
             z-index: 1;
             backdrop-filter: blur(10px);
+            overflow: hidden; /* Внутри — без прокрутки */
         }
 
         h1 {
             text-align: center;
             color: #00ffff;
             text-shadow: 0 0 10px #00ffff;
-            font-size: 1.4em; /* Было 2em */
-            margin-bottom: 10px;
+            font-size: 1.2em;
+            margin-bottom: 8px;
             letter-spacing: 1px;
             font-weight: bold;
         }
@@ -72,11 +89,11 @@
         /* --- ЭТАП 1 --- */
         #stage-hack {
             text-align: center;
-            padding: 20px 0; /* Было 50px */
+            padding: 10px 0;
         }
 
         .lock-icon {
-            font-size: 50px; /* Было 80px */
+            font-size: 45px;
             margin-bottom: 10px;
             animation: pulse 2s infinite;
         }
@@ -91,14 +108,14 @@
             background-color: transparent !important;
             border: 2px solid #ff0055 !important;
             color: #ff0055 !important;
-            padding: 10px 30px; /* Было 15px 40px */
-            font-size: 1.1em; /* Было 1.5em */
+            padding: 10px 25px;
+            font-size: 1em;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             text-transform: uppercase;
             font-weight: bold;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
         .btn-hack:hover {
@@ -108,34 +125,34 @@
         }
 
         .key-message {
-            margin-top: 15px;
-            font-size: 1em;
+            margin-top: 10px;
+            font-size: 0.9em;
             color: #ffcc00;
             display: none;
             animation: fadeIn 0.5s;
         }
 
-        /* --- ЭТАП 2 --- */
+        /* --- ЭТАП 2 и 3 --- */
         #stage-trainer {
             display: none;
         }
 
         #stage-trainer > p {
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
 
         .grid-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px; /* Было 20px */
-            margin-top: 10px;
+            gap: 10px;
+            margin-top: 8px;
         }
 
         .card {
             background: rgba(0, 30, 60, 0.6) !important;
             border: 1px solid #00ffff !important;
-            border-radius: 12px;
-            padding: 15px; /* Было 25px */
+            border-radius: 10px;
+            padding: 12px;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
             color: #fff !important;
         }
@@ -144,27 +161,27 @@
             margin-top: 0;
             color: #00ffff !important;
             border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-            padding-bottom: 6px;
-            font-size: 1em; /* Было 1.2em */
-            margin-bottom: 8px;
+            padding-bottom: 5px;
+            font-size: 0.95em;
+            margin-bottom: 6px;
         }
 
         .equation {
-            font-size: 1.4em; /* Было 1.8em */
+            font-size: 1.3em;
             text-align: center;
-            margin: 12px 0;
+            margin: 10px 0;
             color: #fff !important;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 10px; /* Было 15px */
+            padding: 8px;
             background-color: #ffffff !important;
             border: 2px solid #00ffff !important;
             border-radius: 6px;
             color: #000000 !important;
-            font-size: 1em; /* Было 1.2em */
+            font-size: 0.95em;
             outline: none;
             display: block;
             color-scheme: light !important;
@@ -179,13 +196,13 @@
 
         .btn-check {
             width: 100%;
-            padding: 10px; /* Было 15px */
-            margin-top: 10px;
+            padding: 8px;
+            margin-top: 8px;
             background-color: #00ffff !important;
             border: none !important;
             border-radius: 6px;
             color: #0a0f1d !important;
-            font-size: 1em; /* Было 1.2em */
+            font-size: 0.95em;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
@@ -200,13 +217,13 @@
 
         .explanation {
             display: none;
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 8px;
+            padding: 8px;
             background: rgba(0, 255, 0, 0.1);
-            border-left: 4px solid #00ff00;
+            border-left: 3px solid #00ff00;
             border-radius: 5px;
             color: #fff !important;
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
 
         .explanation.show {
@@ -221,20 +238,20 @@
         #stage-final {
             display: none;
             text-align: center;
-            padding: 20px 0;
+            padding: 15px 0;
         }
 
         .final-title {
-            font-size: 2em; /* Было 3em */
+            font-size: 1.7em;
             color: #ffcc00;
             text-shadow: 0 0 20px #ffcc00;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-weight: bold;
             line-height: 1.2;
         }
 
         .final-subtitle {
-            font-size: 1.1em; /* Было 1.5em */
+            font-size: 1em;
             color: #00ffff;
             line-height: 1.4;
         }
@@ -246,19 +263,19 @@
 
         @media (max-width: 768px) {
             .grid-layout { grid-template-columns: 1fr; }
-            .final-title { font-size: 1.5em; }
+            .final-title { font-size: 1.3em; }
         }
 
         /* Блок с ИИ-генератором */
         .ai-block {
-            margin-top: 15px;
+            margin-top: 10px;
             border-top: 1px solid rgba(0,255,255,0.3);
-            padding-top: 12px;
+            padding-top: 8px;
             text-align: center;
         }
         .ai-block p {
-            font-size: 0.9em;
-            margin-bottom: 8px;
+            font-size: 0.85em;
+            margin-bottom: 6px;
         }
     </style>
 </head>
@@ -269,7 +286,7 @@
         <div id="stage-hack">
             <div class="lock-icon">🔒</div>
             <h1>ДОСТУП ОГРАНИЧЕН</h1>
-            <p style="color: #aaa; margin-bottom: 20px; font-size: 0.9em;">Для открытия портала требуется ключ шифрования</p>
+            <p style="color: #aaa; margin-bottom: 15px; font-size: 0.85em;">Для открытия портала требуется ключ шифрования</p>
             <button class="btn-hack" onclick="hackPortal()">ВЗЛОМАТЬ ПОРТАЛ</button>
             <div class="key-message" id="keyMessage">
                 🔑 КЛЮЧ: <strong>ПРОМПТ</strong>
@@ -277,8 +294,8 @@
         </div>
 
         <div id="stage-trainer">
-            <h1 style="font-size: 1.2em; text-align: left;">⚡ АКТИВАЦИЯ СУПЕРСПОСОБНОСТИ</h1>
-            <p style="color: #aaa; margin-bottom: 5px;">Используем ИИ для создания образовательных миров</p>
+            <h1 style="font-size: 1.1em; text-align: left;">⚡ АКТИВАЦИЯ СУПЕРСПОСОБНОСТИ</h1>
+            <p style="color: #aaa; margin-bottom: 3px;">Используем ИИ для создания образовательных миров</p>
             
             <div class="grid-layout">
                 <div class="card">
@@ -286,7 +303,7 @@
                     <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
                     <input type="text" id="userAnswer" placeholder="Ответ (например: 2, 3)">
                     <button class="btn-check" onclick="checkAnswer()">Проверить</button>
-                    <div id="resultMessage" style="margin-top: 8px; text-align: center; font-size: 0.9em;"></div>
+                    <div id="resultMessage" style="margin-top: 6px; text-align: center; font-size: 0.85em;"></div>
                 </div>
 
                 <div class="card">
@@ -295,7 +312,7 @@
                         <p id="expText"></p>
                         <p class="correct" id="expResult"></p>
                     </div>
-                    <div id="emptyExp" style="color: #666; text-align: center; margin-top: 30px; font-size: 0.9em;">
+                    <div id="emptyExp" style="color: #666; text-align: center; margin-top: 25px; font-size: 0.85em;">
                         Нажмите "Проверить"
                     </div>
                 </div>
@@ -304,8 +321,8 @@
             <div class="ai-block">
                 <p style="color: #ffcc00;">🤖 Попробуйте сами! Введите промпт:</p>
                 <input type="text" id="promptInput" value="Создай тренажер по квадратным уравнениям для школьников" style="width: 55%; display: inline-block; color: #000 !important;">
-                <button class="btn-check" style="width: auto; display: inline-block; padding: 10px 20px; margin-left: 8px;" onclick="generateNewTask()">Отправить</button>
-                <p style="color: #00ff00; font-size: 0.85em; margin-top: 8px;" id="aiStatus"></p>
+                <button class="btn-check" style="width: auto; display: inline-block; padding: 8px 18px; margin-left: 6px;" onclick="generateNewTask()">Отправить</button>
+                <p style="color: #00ff00; font-size: 0.8em; margin-top: 6px;" id="aiStatus"></p>
             </div>
         </div>
 
@@ -315,7 +332,7 @@
                 Мы не учим "быть учителем".<br>
                 Мы учим <strong>управлять вниманием и знаниями</strong> с помощью кода и математики.
             </div>
-            <p style="margin-top: 20px; color: #ffcc00; font-size: 1em;">✨ Это и есть ваша суперспособность ✨</p>
+            <p style="margin-top: 15px; color: #ffcc00; font-size: 0.9em;">✨ Это и есть ваша суперспособность ✨</p>
         </div>
     </div>
 </div>
