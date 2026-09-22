@@ -10,79 +10,129 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #f4f7fb;
+    background: #0a0e2a;
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    color: #1e293b;
+    color: #e8f0ff;
   }
   #app {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-    padding: 10px 14px;
+    padding: 12px 14px;
   }
   #header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 8px;
   }
   h1 {
     font-size: 17px;
     font-weight: 600;
-    color: #0f3d6e;
+    color: #ffd6f5;
+    text-shadow: 0 0 12px rgba(255, 90, 220, 0.6);
+    letter-spacing: .3px;
   }
   #hud {
     display: flex;
     gap: 16px;
     font-size: 13px;
-    color: #475569;
+    color: #b8cbe6;
   }
-  #hud b { color: #1976d2; }
+  #hud b { color: #4fe3ff; text-shadow: 0 0 8px rgba(79, 227, 255, .7); }
+
   #board {
     position: relative;
     flex: 1;
-    background: #ffffff;
-    border: 1px solid #d7e0ec;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(15, 61, 110, 0.06);
+    background: #0b1030;
+    /* фон-картинка с рамкой */
+    background-image: url('bg.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    box-shadow: 0 0 24px rgba(255, 90, 220, 0.25);
   }
   canvas {
     display: block;
     width: 100%;
     height: 100%;
     cursor: pointer;
+    /* фон просвечивает сквозь canvas */
+    background: transparent;
   }
+
+  /* Оверлей паузы */
+  #pauseOverlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 14, 42, 0.75);
+    backdrop-filter: blur(2px);
+    color: #4fe3ff;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 0 16px rgba(79, 227, 255, 0.9);
+    z-index: 5;
+  }
+  #pauseOverlay.show { display: flex; }
+
   #msg {
     min-height: 20px;
     margin-top: 6px;
     font-size: 13px;
     font-weight: 600;
     text-align: center;
-    color: #475569;
+    color: #b8cbe6;
   }
-  #msg.ok  { color: #2e7d32; }
-  #msg.err { color: #c62828; }
-  #msg.win { color: #f57f17; font-size: 16px; }
+  #msg.ok  { color: #4fffb0; }
+  #msg.err { color: #ff7aa8; }
+  #msg.win { color: #ffd84f; font-size: 16px; }
+
   #footer {
     display: flex;
     justify-content: center;
-    margin-top: 6px;
+    gap: 10px;
+    margin-top: 8px;
   }
-  #reset {
-    padding: 7px 20px;
+  button {
+    padding: 8px 22px;
     font-size: 13px;
-    font-weight: 600;
-    background: #1976d2;
+    font-weight: 700;
+    letter-spacing: .4px;
     color: #fff;
-    border: none;
-    border-radius: 6px;
+    background: rgba(79, 227, 255, 0.12);
+    border: 2px solid #4fe3ff;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all .18s ease;
+    text-shadow: 0 0 8px rgba(79, 227, 255, 0.5);
   }
-  #reset:hover { background: #0f5cad; }
+  button:hover:not(:disabled) {
+    background: #4fe3ff;
+    color: #06101f;
+    box-shadow: 0 0 18px rgba(79, 227, 255, 0.8);
+    text-shadow: none;
+  }
+  button:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+    border-color: #6b7a99;
+    color: #98a9c7;
+    text-shadow: none;
+  }
+  #btnPause { border-color: #ff8ee0; color: #ffd6f5; }
+  #btnPause:hover:not(:disabled) {
+    background: #ff8ee0; color: #2b0a24;
+    box-shadow: 0 0 18px rgba(255, 142, 224, 0.8);
+  }
 </style>
 </head>
 <body>
@@ -98,12 +148,15 @@
 
   <div id="board">
     <canvas id="game"></canvas>
+    <div id="pauseOverlay">⏸ ПАУЗА</div>
   </div>
 
-  <div id="msg">Кликните по карточке слева, затем по подходящей справа</div>
+  <div id="msg">Нажмите «Старт», чтобы начать игру</div>
 
   <div id="footer">
-    <button id="reset">Заново</button>
+    <button id="btnStart">▶ Старт</button>
+    <button id="btnPause" disabled>⏸ Пауза</button>
+    <button id="reset">⟲ Заново</button>
   </div>
 </div>
 
@@ -137,19 +190,27 @@ const msgEl = document.getElementById('msg');
 const foundEl = document.getElementById('found');
 const errorsEl = document.getElementById('errors');
 const timeEl = document.getElementById('time');
+const pauseOverlay = document.getElementById('pauseOverlay');
+const btnStart = document.getElementById('btnStart');
+const btnPause = document.getElementById('btnPause');
 document.getElementById('total').textContent = tasks.length;
 
 // ===== Состояние =====
-let W = 800, H = 500;            // виртуальные размеры canvas
+let W = 800, H = 500;
 let dpr = window.devicePixelRatio || 1;
 let leftCards = [], rightCards = [];
 let selectedLeft = null;
 let matchedLeft = new Set();
 let matchedRight = new Set();
 let errors = 0;
-let startTime = 0, timerId = null;
+let layout = {};
+
+// Игровой статус: 'idle' | 'playing' | 'paused' | 'finished'
+let gameState = 'idle';
+let elapsedBefore = 0;       // накопленное время
+let resumeTimestamp = 0;     // момент, когда нажали Старт/Продолжить
+let timerId = null;
 let wrongFlash = null;
-let layout = {};                  // динамический layout
 
 // ===== Утилиты =====
 function shuffle(arr) {
@@ -161,10 +222,9 @@ function shuffle(arr) {
   return a;
 }
 
-// ===== Подгонка размера canvas под контейнер =====
+// ===== Размер canvas =====
 function resizeCanvas() {
   const rect = board.getBoundingClientRect();
-  // виртуальный размер = CSS-размер (1:1), с учётом devicePixelRatio для чёткости
   W = Math.max(320, Math.floor(rect.width));
   H = Math.max(240, Math.floor(rect.height));
   canvas.width  = Math.floor(W * dpr);
@@ -176,47 +236,36 @@ function resizeCanvas() {
   draw();
 }
 
-// ===== Пересчёт геометрии карточек под текущий размер =====
+// ===== Геометрия карточек =====
 function computeLayout() {
-  const padX = 16;
-  const padTop = 26;    // место под заголовки колонок
-  const padBottom = 12;
-  const gapX = 24;      // зазор между колонками
+  const padX = 30;
+  const padTop = 40;     // место под заголовки
+  const padBottom = 20;
+  const gapX = 32;
   const gapY = 10;
 
   const colW = (W - padX * 2 - gapX) / 2;
   const rows = tasks.length;
   const availH = H - padTop - padBottom;
-  const cardH = Math.min(72, Math.floor((availH - gapY * (rows - 1)) / rows));
+  const cardH = Math.min(70, Math.floor((availH - gapY * (rows - 1)) / rows));
 
-  layout = {
-    padX, padTop, gapY,
-    leftX: padX,
-    rightX: padX + colW + gapX,
-    colW: colW,
-    cardH: cardH,
-    radius: 10
-  };
+  layout = { padX, padTop, gapY, leftX: padX, rightX: padX + colW + gapX, colW, cardH, radius: 10 };
 
   leftCards = tasks.map((t, i) => ({
     ...t,
     x: layout.leftX,
     y: layout.padTop + i * (cardH + gapY),
-    w: colW,
-    h: cardH
+    w: colW, h: cardH
   }));
 
-  // правую колонку сохраняем в её текущем порядке
-  const order = rightCards.length
-    ? rightCards.map(c => c.id)
-    : shuffle(methods).map(c => c.id);
-  const methodMap = Object.fromEntries(methods.map(m => [m.id, m]));
+  const order = rightCards.length ? rightCards.map(c => c.id)
+                                  : shuffle(methods).map(c => c.id);
+  const map = Object.fromEntries(methods.map(m => [m.id, m]));
   rightCards = order.map((id, i) => ({
-    ...methodMap[id],
+    ...map[id],
     x: layout.rightX,
     y: layout.padTop + i * (cardH + gapY),
-    w: colW,
-    h: cardH
+    w: colW, h: cardH
   }));
 }
 
@@ -240,11 +289,8 @@ function wrapText(text, maxWidth, font) {
     for (const w of words) {
       const test = line ? line + ' ' + w : w;
       if (ctx.measureText(test).width > maxWidth && line) {
-        lines.push(line);
-        line = w;
-      } else {
-        line = test;
-      }
+        lines.push(line); line = w;
+      } else line = test;
     }
     if (line) lines.push(line);
   });
@@ -255,29 +301,36 @@ function drawCard(card, opts) {
   const { selected, matched, wrong } = opts;
   const r = layout.radius;
 
-  // фон
-  ctx.fillStyle = matched ? '#e6f7ec'
-                : wrong   ? '#fdecec'
-                : selected? '#e3f0ff'
-                : '#ffffff';
+  // Полупрозрачный фон карточки — сквозь него виден твой неоновый фон
+  let bg;
+  if (matched)       bg = 'rgba(60, 200, 120, 0.18)';
+  else if (wrong)    bg = 'rgba(255, 80, 120, 0.20)';
+  else if (selected) bg = 'rgba(79, 227, 255, 0.22)';
+  else               bg = 'rgba(20, 26, 64, 0.55)';
+  ctx.fillStyle = bg;
   roundRect(card.x, card.y, card.w, card.h, r);
   ctx.fill();
 
-  // рамка
+  // Рамка со свечением
+  ctx.save();
+  const borderColor = matched ? '#4fffb0'
+                    : wrong   ? '#ff6b8a'
+                    : selected? '#4fe3ff'
+                    : 'rgba(160, 180, 230, 0.55)';
+  ctx.shadowColor = borderColor;
+  ctx.shadowBlur = (matched || wrong || selected) ? 14 : 4;
   ctx.lineWidth = 2;
-  ctx.strokeStyle = matched ? '#4caf50'
-                  : wrong   ? '#e53935'
-                  : selected? '#1976d2'
-                  : '#cfd9e6';
+  ctx.strokeStyle = borderColor;
   roundRect(card.x, card.y, card.w, card.h, r);
   ctx.stroke();
+  ctx.restore();
 
-  // текст (масштабируем шрифт от высоты карточки)
+  // Текст
   const fs = Math.max(11, Math.min(16, Math.floor(card.h * 0.28)));
   const font = `600 ${fs}px 'Segoe UI', Arial, sans-serif`;
-  ctx.fillStyle = matched ? '#1b5e20'
-                : wrong   ? '#b71c1c'
-                : '#1e293b';
+  ctx.fillStyle = matched ? '#c8ffe8'
+                : wrong   ? '#ffd0dc'
+                : '#eaf3ff';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
 
@@ -292,12 +345,13 @@ function drawCard(card, opts) {
     ty += lineH;
   }
 
-  // галочка
   if (matched) {
-    ctx.fillStyle = '#2e7d32';
+    ctx.fillStyle = '#4fffb0';
     ctx.font = `bold ${Math.floor(fs * 1.4)}px Arial`;
     ctx.textAlign = 'right';
+    ctx.shadowColor = '#4fffb0'; ctx.shadowBlur = 12;
     ctx.fillText('✓', card.x + card.w - 10, card.y + card.h / 2);
+    ctx.shadowBlur = 0;
   }
 }
 
@@ -307,12 +361,13 @@ function drawConnections() {
     const right = rightCards.find(r => r.id === correctPairs[left.id]);
     if (!right) continue;
 
-    const x1 = left.x + left.w;
-    const y1 = left.y + left.h / 2;
-    const x2 = right.x;
-    const y2 = right.y + right.h / 2;
+    const x1 = left.x + left.w, y1 = left.y + left.h / 2;
+    const x2 = right.x,        y2 = right.y + right.h / 2;
 
-    ctx.strokeStyle = '#4caf50';
+    ctx.save();
+    ctx.strokeStyle = '#4fffb0';
+    ctx.shadowColor = '#4fffb0';
+    ctx.shadowBlur = 12;
     ctx.lineWidth = 3;
     ctx.beginPath();
     const cx = (x1 + x2) / 2;
@@ -320,31 +375,31 @@ function drawConnections() {
     ctx.bezierCurveTo(cx, y1, cx, y2, x2, y2);
     ctx.stroke();
 
-    ctx.fillStyle = '#4caf50';
+    ctx.fillStyle = '#4fffb0';
     ctx.beginPath(); ctx.arc(x1, y1, 4, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x2, y2, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 }
 
 function draw() {
   if (!layout.colW) return;
 
-  // фон
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+  // Прозрачный canvas — фон-картинка просвечивает
+  ctx.clearRect(0, 0, W, H);
 
-  // заголовки колонок
-  ctx.fillStyle = '#64748b';
+  // Заголовки колонок
+  ctx.fillStyle = 'rgba(200, 220, 255, 0.85)';
   ctx.font = `bold 12px 'Segoe UI', Arial, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText('ЗАДАЧА', layout.leftX, layout.padTop - 10);
-  ctx.fillText('СПОСОБ РЕШЕНИЯ', layout.rightX, layout.padTop - 10);
+  ctx.shadowColor = '#4fe3ff'; ctx.shadowBlur = 8;
+  ctx.fillText('ЗАДАЧА', layout.leftX, layout.padTop - 12);
+  ctx.fillText('СПОСОБ РЕШЕНИЯ', layout.rightX, layout.padTop - 12);
+  ctx.shadowBlur = 0;
 
-  // соединения (под карточками)
   drawConnections();
 
-  // карточки
   const now = performance.now();
   const wrongActive = wrongFlash && wrongFlash.until > now;
 
@@ -363,38 +418,127 @@ function draw() {
     });
   }
 
-  // победа
-  if (matchedLeft.size === tasks.length) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(0, H / 2 - 40, W, 80);
+  // Победа
+  if (gameState === 'finished') {
+    ctx.fillStyle = 'rgba(10, 14, 42, 0.75)';
+    ctx.fillRect(0, H / 2 - 50, W, 100);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#f57f17';
-    const bigFs = Math.max(20, Math.min(34, Math.floor(W * 0.045)));
+    ctx.shadowColor = '#ffd84f'; ctx.shadowBlur = 22;
+    ctx.fillStyle = '#ffd84f';
+    const bigFs = Math.max(20, Math.min(36, Math.floor(W * 0.045)));
     ctx.font = `bold ${bigFs}px 'Segoe UI', Arial, sans-serif`;
-    ctx.fillText('🏆 Все пары найдены!', W / 2, H / 2 - 12);
+    ctx.fillText('🏆 Все пары найдены!', W / 2, H / 2 - 14);
+    ctx.shadowBlur = 0;
 
-    const t = Math.floor((performance.now() - startTime) / 1000);
-    ctx.fillStyle = '#475569';
-    ctx.font = `${Math.floor(bigFs * 0.55)}px 'Segoe UI', Arial, sans-serif`;
-    ctx.fillText(`Время: ${t} с  •  Ошибок: ${errors}`, W / 2, H / 2 + 20);
+    ctx.fillStyle = '#cfe3ff';
+    ctx.font = `${Math.floor(bigFs * 0.5)}px 'Segoe UI', Arial, sans-serif`;
+    ctx.fillText(`Время: ${Math.round(elapsedBefore / 1000)} с  •  Ошибок: ${errors}`, W / 2, H / 2 + 22);
   }
 }
 
-// ===== Клик =====
+// ===== Таймер =====
+function updateTimerDisplay() {
+  let t;
+  if (gameState === 'playing') {
+    t = elapsedBefore + (performance.now() - resumeTimestamp);
+  } else {
+    t = elapsedBefore;
+  }
+  timeEl.textContent = Math.floor(t / 1000);
+}
+
+function startTimerLoop() {
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(() => {
+    if (gameState === 'playing') updateTimerDisplay();
+  }, 200);
+}
+
+// ===== Управление состоянием =====
+function startGame() {
+  if (gameState === 'playing') return;
+  if (gameState === 'finished') reset();
+
+  gameState = 'playing';
+  resumeTimestamp = performance.now();
+  pauseOverlay.classList.remove('show');
+  msgEl.textContent = 'Кликните по карточке слева, затем по подходящей справа';
+  msgEl.className = '';
+  btnStart.disabled = true;
+  btnPause.disabled = false;
+  startTimerLoop();
+  updateTimerDisplay();
+  draw();
+}
+
+function pauseGame() {
+  if (gameState !== 'playing') return;
+  elapsedBefore += performance.now() - resumeTimestamp;
+  gameState = 'paused';
+  pauseOverlay.classList.add('show');
+  msgEl.textContent = '⏸ Пауза';
+  msgEl.className = '';
+  btnStart.disabled = false;
+  btnStart.textContent = '▶ Продолжить';
+  btnPause.disabled = true;
+  updateTimerDisplay();
+}
+
+function resumeGame() {
+  if (gameState !== 'paused') return;
+  gameState = 'playing';
+  resumeTimestamp = performance.now();
+  pauseOverlay.classList.remove('show');
+  msgEl.textContent = 'Игра продолжается...';
+  msgEl.className = '';
+  btnStart.disabled = true;
+  btnStart.textContent = '▶ Старт';
+  btnPause.disabled = false;
+  updateTimerDisplay();
+}
+
+function reset() {
+  selectedLeft = null;
+  matchedLeft = new Set();
+  matchedRight = new Set();
+  errors = 0;
+  wrongFlash = null;
+  elapsedBefore = 0;
+  gameState = 'idle';
+
+  errorsEl.textContent = '0';
+  foundEl.textContent = '0';
+  timeEl.textContent = '0';
+
+  // новый порядок правой колонки
+  rightCards = [];
+  computeLayout();
+
+  pauseOverlay.classList.remove('show');
+  msgEl.textContent = 'Нажмите «Старт», чтобы начать игру';
+  msgEl.className = '';
+  btnStart.disabled = false;
+  btnStart.textContent = '▶ Старт';
+  btnPause.disabled = true;
+
+  draw();
+}
+
+// ===== Клик по карточкам =====
 function pointInRect(mx, my, r) {
   return mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h;
 }
 
 canvas.addEventListener('click', e => {
-  if (matchedLeft.size === tasks.length) return;
+  if (gameState !== 'playing') return;
 
   const rect = canvas.getBoundingClientRect();
   const mx = (e.clientX - rect.left) * (W / rect.width);
   const my = (e.clientY - rect.top)  * (H / rect.height);
 
-  // левые
+  // левая колонка
   for (const c of leftCards) {
     if (pointInRect(mx, my, c)) {
       if (matchedLeft.has(c.id)) {
@@ -410,7 +554,7 @@ canvas.addEventListener('click', e => {
     }
   }
 
-  // правые
+  // правая колонка
   for (const c of rightCards) {
     if (pointInRect(mx, my, c)) {
       if (matchedRight.has(c.id)) {
@@ -431,9 +575,16 @@ canvas.addEventListener('click', e => {
         foundEl.textContent = matchedLeft.size;
 
         if (matchedLeft.size === tasks.length) {
+          // финиш
+          elapsedBefore += performance.now() - resumeTimestamp;
+          gameState = 'finished';
           msgEl.textContent = 'Победа! Все пары найдены 🎉';
           msgEl.className = 'win';
+          btnStart.disabled = false;
+          btnStart.textContent = '▶ Заново';
+          btnPause.disabled = true;
           if (timerId) clearInterval(timerId);
+          updateTimerDisplay();
         } else {
           msgEl.textContent = 'Верно! ✓';
           msgEl.className = 'ok';
@@ -450,7 +601,6 @@ canvas.addEventListener('click', e => {
         msgEl.textContent = 'Неверно! Попробуйте другую пару';
         msgEl.className = 'err';
         selectedLeft = null;
-        // перерисовать сразу и снять подсветку через 700 мс
         setTimeout(draw, 700);
       }
       draw();
@@ -459,41 +609,19 @@ canvas.addEventListener('click', e => {
   }
 });
 
-// ===== Сброс =====
-function reset() {
-  selectedLeft = null;
-  matchedLeft = new Set();
-  matchedRight = new Set();
-  errors = 0;
-  wrongFlash = null;
-  msgEl.textContent = 'Кликните по карточке слева, затем по подходящей справа';
-  msgEl.className = '';
-  errorsEl.textContent = '0';
-  foundEl.textContent = '0';
-
-  // новый случайный порядок правой колонки
-  rightCards = [];
-  computeLayout();
-
-  startTime = performance.now();
-  timeEl.textContent = '0';
-  if (timerId) clearInterval(timerId);
-  timerId = setInterval(() => {
-    timeEl.textContent = Math.floor((performance.now() - startTime) / 1000);
-  }, 300);
-
-  draw();
-}
-
+// ===== Кнопки =====
+btnStart.addEventListener('click', () => {
+  if (gameState === 'paused') resumeGame();
+  else startGame();
+});
+btnPause.addEventListener('click', pauseGame);
 document.getElementById('reset').addEventListener('click', reset);
 
-// ===== Реакция на изменение размера =====
+// ===== Размер =====
 window.addEventListener('resize', resizeCanvas);
-if (window.ResizeObserver) {
-  new ResizeObserver(resizeCanvas).observe(board);
-}
+if (window.ResizeObserver) new ResizeObserver(resizeCanvas).observe(board);
 
-// старт
+// ===== Старт =====
 resizeCanvas();
 reset();
 </script>
