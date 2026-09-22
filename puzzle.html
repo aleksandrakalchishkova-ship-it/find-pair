@@ -24,6 +24,7 @@
         .app {
             display: flex;
             flex-direction: column;
+            align-items: center;
             width: 100vw;
             height: 100vh;
             padding: 10px 15px;
@@ -50,24 +51,25 @@
 
         .game-area {
             display: flex;
-            flex: 1;
-            gap: 12px;
-            min-height: 0;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: center;
         }
 
-        /* Лоток с кусочками */
+        /* Лоток */
         .tray {
-            width: 32%;
+            width: 380px;
+            min-height: 400px;
             background: rgba(0, 30, 60, 0.5);
             border: 2px dashed #00ffff66;
             border-radius: 12px;
-            padding: 30px 8px 8px 8px;
+            padding: 30px 10px 10px 10px;
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
             gap: 6px;
             position: relative;
-            overflow: auto;
+            overflow-y: auto;
         }
 
         .tray-title {
@@ -80,9 +82,10 @@
             text-transform: uppercase;
         }
 
-        /* Игровое поле 3x3 */
+        /* Игровое поле 3x3 = 360x360 */
         .board {
-            flex: 1;
+            width: 360px;
+            height: 360px;
             background: rgba(0, 30, 60, 0.3);
             border: 2px solid #00ffff;
             border-radius: 12px;
@@ -90,10 +93,11 @@
             overflow: hidden;
             box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
         }
 
+        /* Фоновая подсказка */
         .board::before {
             content: '';
             position: absolute;
@@ -101,13 +105,15 @@
             background-image: url('puzzle.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 0.07;
+            opacity: 0.1;
             pointer-events: none;
         }
 
-        /* Ячейка — кусочек будет растягиваться по ней */
+        /* Ячейка */
         .cell {
-            border: 1px solid rgba(0, 255, 255, 0.15);
+            width: 120px;
+            height: 120px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
             position: relative;
             z-index: 1;
             display: flex;
@@ -115,40 +121,27 @@
             justify-content: center;
         }
 
-        /* Ячейка с правильным кусочком — убираем подсветку */
         .cell[data-filled="true"] {
             border-color: rgba(0, 255, 255, 0.5);
         }
 
-        /* Кусочек пазла — АДАПТИВНЫЙ */
+        /* Кусочек пазла — ВСЕГДА 120x120 */
         .piece {
-            width: 100%;
-            height: 100%;
-            background-size: 300% 300%; /* 3x3 = 300% */
+            width: 120px;
+            height: 120px;
+            background-image: url('puzzle.jpg?v=2');
+            background-size: 360px 360px;
             background-repeat: no-repeat;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: grab;
             box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
             transition: transform 0.15s, box-shadow 0.15s;
             z-index: 10;
-        }
-
-        /* В лотке кусочек имеет фиксированный размер, чтобы удобно было брать */
-        .tray .piece {
-            width: 80px;
-            height: 80px;
             flex-shrink: 0;
         }
 
-        /* На поле кусочек растягивается по ячейке */
-        .board .piece {
-            width: 100%;
-            height: 100%;
-            border-radius: 0;
-            box-shadow: none;
-        }
-
         .piece:hover {
+            transform: scale(1.05);
             box-shadow: 0 0 15px #00ffff;
         }
 
@@ -159,12 +152,12 @@
 
         .piece.placed {
             cursor: default;
+            box-shadow: none;
+            transform: none;
         }
 
-        /* Адаптив для маленьких экранов */
-        @media (max-width: 900px) {
-            .tray .piece { width: 60px; height: 60px; }
-            .tray { width: 35%; }
+        .piece.placed:hover {
+            transform: none;
         }
 
         /* Победный экран */
@@ -228,15 +221,15 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 8px;
+            margin-top: 15px;
         }
 
         .btn-shuffle {
             background: transparent;
             border: 2px solid #ff0055;
             color: #ff0055;
-            padding: 6px 18px;
-            font-size: 0.85em;
+            padding: 8px 20px;
+            font-size: 0.9em;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
@@ -289,9 +282,10 @@
 </div>
 
 <script>
+    const SIZE = 120;
     const COLS = 3;
     const ROWS = 3;
-    const IMAGE_URL = 'puzzle.jpg';
+    const IMAGE_URL = 'puzzle.jpg?v=2';
 
     const tray = document.getElementById('tray');
     const board = document.getElementById('board');
@@ -309,10 +303,11 @@
         const row = Math.floor(index / COLS);
         const col = index % COLS;
 
-        // Фон — кусок картинки 3x3
+        // Размер фона — 360x360 (3 кусочка по 120)
+        // background-position сдвигает картинку на нужный кусочек
         piece.style.backgroundImage = `url('${IMAGE_URL}')`;
-        piece.style.backgroundSize = `${COLS * 100}% ${ROWS * 100}%`;
-        piece.style.backgroundPosition = `${(col * 100) / (COLS - 1)}% ${(row * 100) / (ROWS - 1)}%`;
+        piece.style.backgroundSize = `${COLS * SIZE}px ${ROWS * SIZE}px`;
+        piece.style.backgroundPosition = `-${col * SIZE}px -${row * SIZE}px`;
 
         piece.addEventListener('dragstart', (e) => {
             draggedPiece = piece;
@@ -411,8 +406,6 @@
         touchOffsetX = touch.clientX - rect.left;
         touchOffsetY = touch.clientY - rect.top;
         piece.style.position = 'fixed';
-        piece.style.width = rect.width + 'px';
-        piece.style.height = rect.height + 'px';
         piece.style.zIndex = '999';
         piece.style.pointerEvents = 'none';
         moveAt(touch.clientX, touch.clientY);
@@ -467,8 +460,6 @@
 
     function resetTouchPiece(piece) {
         piece.style.position = '';
-        piece.style.width = '';
-        piece.style.height = '';
         piece.style.zIndex = '';
         piece.style.left = '';
         piece.style.top = '';
