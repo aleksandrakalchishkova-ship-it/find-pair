@@ -83,7 +83,6 @@
             font-weight: bold;
         }
 
-        /* --- ЭТАП 1 --- */
         #stage-hack {
             text-align: center;
             padding: 10px 0;
@@ -129,7 +128,6 @@
             animation: fadeIn 0.5s;
         }
 
-        /* --- ЭТАП 2 и 3 --- */
         #stage-trainer {
             display: none;
         }
@@ -172,7 +170,6 @@
             transition: all 0.5s;
         }
 
-        /* Подсветка нового примера */
         .equation.new-task {
             animation: glow 1.5s ease-in-out;
         }
@@ -242,7 +239,6 @@
         .correct { color: #00ff00; font-weight: bold; }
         .incorrect { color: #ff0055; font-weight: bold; }
 
-        /* --- ЭТАП 4 --- */
         #stage-final {
             display: none;
             text-align: center;
@@ -357,11 +353,10 @@
         }, 2500);
     }
 
-    // Состояние текущего примера
     let currentEquation = { a: 1, b: -5, c: 6 };
     let correctRoots = [2, 3];
-    let isNewTaskSolved = false; // Флаг: решён ли новый (сгенерированный) пример
-    let currentTaskIsGenerated = false; // Флаг: является ли текущий пример сгенерированным
+    let isNewTaskSolved = false;
+    let currentTaskIsGenerated = false;
 
     function checkAnswer() {
         const userInput = document.getElementById('userAnswer').value.trim();
@@ -386,8 +381,6 @@
 
         if (isCorrect) {
             resultMsg.innerHTML = '<span class="correct">✅ Верно!</span>';
-            
-            // Если это был сгенерированный пример — отмечаем как решённый
             if (currentTaskIsGenerated) {
                 isNewTaskSolved = true;
             }
@@ -395,7 +388,6 @@
             resultMsg.innerHTML = '<span class="incorrect">❌ Попробуйте еще раз</span>';
         }
 
-        // Показываем пояснение
         expBox.classList.add('show');
         emptyExp.style.display = 'none';
 
@@ -410,7 +402,6 @@
         `;
         expResult.innerHTML = `x₁ = ${r1}, x₂ = ${r2}`;
 
-        // ЕСЛИ РЕШЁН НОВЫЙ ПРИМЕР — через 4 секунды показываем финал
         if (isNewTaskSolved) {
             setTimeout(() => {
                 document.getElementById('stage-trainer').style.display = 'none';
@@ -426,7 +417,6 @@
         
         if (!prompt) return;
 
-        // Блокируем кнопку, чтобы не нажимали несколько раз
         btnGen.disabled = true;
         btnGen.style.opacity = '0.5';
         status.innerHTML = "⏳ Генерация нового тренажера...";
@@ -436,7 +426,6 @@
             btnGen.disabled = false;
             btnGen.style.opacity = '1';
             
-            // Генерируем новое уравнение
             const r1 = Math.floor(Math.random() * 8) - 4;
             const r2 = Math.floor(Math.random() * 8) - 4;
             const b = -(r1 + r2);
@@ -444,19 +433,16 @@
             
             currentEquation = { a: 1, b: b, c: c };
             correctRoots = [r1, r2];
-            currentTaskIsGenerated = true; // Отмечаем, что это сгенерированный пример
-            isNewTaskSolved = false;       // Сбрасываем флаг решения
+            currentTaskIsGenerated = true;
+            isNewTaskSolved = false;
 
-            // Обновляем отображение уравнения
             const eqDisplay = document.getElementById('equationDisplay');
             eqDisplay.innerHTML = `x² ${b > 0 ? '+' : ''}${b}x ${c > 0 ? '+' : ''}${c} = 0`;
             
-            // Анимация подсветки нового примера
             eqDisplay.classList.remove('new-task');
-            void eqDisplay.offsetWidth; // Трюк для перезапуска анимации
+            void eqDisplay.offsetWidth;
             eqDisplay.classList.add('new-task');
 
-            // Очищаем поля ввода и результат
             document.getElementById('userAnswer').value = '';
             document.getElementById('userAnswer').focus();
             document.getElementById('resultMessage').innerHTML = '';
