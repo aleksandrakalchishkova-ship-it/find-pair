@@ -2,89 +2,113 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Найди пару: задача → способ решения</title>
 <style>
-  body {
-    margin: 0;
-    min-height: 100vh;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f4f7fb;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: #1e293b;
+  }
+  #app {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 10px 14px;
+  }
+  #header {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at 50% 0%, #1b2a4a, #0a0f1e 70%);
-    font-family: 'Segoe UI', Arial, sans-serif;
-    color: #e8f0ff;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
   }
   h1 {
-    font-size: 22px;
-    margin: 10px 0 4px;
-    letter-spacing: 1px;
+    font-size: 17px;
     font-weight: 600;
+    color: #0f3d6e;
   }
-  .subtitle { color: #8fa9c9; font-size: 14px; margin-bottom: 10px; }
   #hud {
     display: flex;
-    gap: 24px;
-    font-size: 15px;
-    margin-bottom: 8px;
-    color: #b8cbe6;
+    gap: 16px;
+    font-size: 13px;
+    color: #475569;
   }
-  #hud b { color: #4fe3ff; }
+  #hud b { color: #1976d2; }
+  #board {
+    position: relative;
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #d7e0ec;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(15, 61, 110, 0.06);
+  }
   canvas {
-    background: #0e1730;
-    border-radius: 14px;
-    box-shadow: 0 0 40px rgba(0, 180, 255, 0.25), inset 0 0 60px rgba(0,0,0,0.4);
+    display: block;
+    width: 100%;
+    height: 100%;
     cursor: pointer;
   }
   #msg {
-    margin-top: 12px;
-    min-height: 24px;
-    font-size: 17px;
+    min-height: 20px;
+    margin-top: 6px;
+    font-size: 13px;
     font-weight: 600;
     text-align: center;
+    color: #475569;
   }
-  .ok { color: #4fffb0; }
-  .err { color: #ff6b8a; }
-  .win { color: #ffd84f; }
+  #msg.ok  { color: #2e7d32; }
+  #msg.err { color: #c62828; }
+  #msg.win { color: #f57f17; font-size: 16px; }
+  #footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 6px;
+  }
   #reset {
-    margin-top: 10px;
-    padding: 10px 28px;
-    font-size: 15px;
+    padding: 7px 20px;
+    font-size: 13px;
     font-weight: 600;
-    background: #12294d;
-    color: #e8f0ff;
-    border: 2px solid #4fe3ff;
-    border-radius: 10px;
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
-    transition: .2s;
   }
-  #reset:hover { background: #4fe3ff; color: #06101f; }
+  #reset:hover { background: #0f5cad; }
 </style>
 </head>
 <body>
-  <h1>Найди пару: задача → способ решения</h1>
-  <div class="subtitle">Кликните по карточке слева, затем по подходящей справа</div>
-  <div id="hud">
-    <span>Найдено: <b id="found">0</b>/<span id="total">5</span></span>
-    <span>Ошибки: <b id="errors">0</b></span>
-    <span>Время: <b id="time">0</b> c</span>
+<div id="app">
+  <div id="header">
+    <h1>Найди пару: задача → способ решения</h1>
+    <div id="hud">
+      <span>Найдено: <b id="found">0</b>/<span id="total">5</span></span>
+      <span>Ошибки: <b id="errors">0</b></span>
+      <span>Время: <b id="time">0</b> с</span>
+    </div>
   </div>
-  <canvas id="game" width="900" height="520"></canvas>
-  <div id="msg"></div>
-  <button id="reset">Заново</button>
+
+  <div id="board">
+    <canvas id="game"></canvas>
+  </div>
+
+  <div id="msg">Кликните по карточке слева, затем по подходящей справа</div>
+
+  <div id="footer">
+    <button id="reset">Заново</button>
+  </div>
+</div>
 
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-
-const msgEl = document.getElementById('msg');
-const foundEl = document.getElementById('found');
-const errorsEl = document.getElementById('errors');
-const timeEl = document.getElementById('time');
-const totalEl = document.getElementById('total');
-
-// ==== ЛЕВАЯ КОЛОНКА: ЗАДАЧИ ====
+// ===== Данные =====
 const tasks = [
   { id: 't1', text: 'Нужно быстро найти\nинформацию в базе' },
   { id: 't2', text: 'Нужно выстроить\nпоследовательность действий' },
@@ -93,7 +117,6 @@ const tasks = [
   { id: 't5', text: 'Нужно упорядочить\nсписок по алфавиту' }
 ];
 
-// ==== ПРАВАЯ КОЛОНКА: СПОСОБЫ РЕШЕНИЯ ====
 const methods = [
   { id: 'm1', text: 'Поиск и сортировка' },
   { id: 'm2', text: 'Алгоритм' },
@@ -102,33 +125,33 @@ const methods = [
   { id: 'm5', text: 'Сортировка' }
 ];
 
-// ==== КРИТЕРИЙ ПРАВИЛЬНОСТИ (ключ соответствий) ====
 const correctPairs = {
-  t1: 'm1', // быстро найти информацию -> Поиск и сортировка
-  t2: 'm2', // последовательность действий -> Алгоритм
-  t3: 'm3', // сравнить два числа -> Сравнение
-  t4: 'm4', // кратчайший маршрут -> Поиск пути
-  t5: 'm5'  // упорядочить по алфавиту -> Сортировка
+  t1: 'm1', t2: 'm2', t3: 'm3', t4: 'm4', t5: 'm5'
 };
 
-// ==== Состояние игры ====
-let leftCards = [];   // {id, text, x, y, w, h}
-let rightCards = [];
+// ===== Элементы =====
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const board = document.getElementById('board');
+const msgEl = document.getElementById('msg');
+const foundEl = document.getElementById('found');
+const errorsEl = document.getElementById('errors');
+const timeEl = document.getElementById('time');
+document.getElementById('total').textContent = tasks.length;
+
+// ===== Состояние =====
+let W = 800, H = 500;            // виртуальные размеры canvas
+let dpr = window.devicePixelRatio || 1;
+let leftCards = [], rightCards = [];
 let selectedLeft = null;
 let matchedLeft = new Set();
 let matchedRight = new Set();
 let errors = 0;
-let startTime = 0;
-let timerId = null;
-let wrongFlash = null; // {leftId, rightId, until}
+let startTime = 0, timerId = null;
+let wrongFlash = null;
+let layout = {};                  // динамический layout
 
-const CARD_W = 300;
-const CARD_H = 78;
-const LEFT_X = 60;
-const RIGHT_X = W - 60 - CARD_W;
-const TOP_Y = 40;
-const GAP = 14;
-
+// ===== Утилиты =====
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -138,8 +161,78 @@ function shuffle(arr) {
   return a;
 }
 
-function wrapText(text, maxWidth) {
-  // поддержка явного переноса по \n и авто-перенос по словам
+// ===== Подгонка размера canvas под контейнер =====
+function resizeCanvas() {
+  const rect = board.getBoundingClientRect();
+  // виртуальный размер = CSS-размер (1:1), с учётом devicePixelRatio для чёткости
+  W = Math.max(320, Math.floor(rect.width));
+  H = Math.max(240, Math.floor(rect.height));
+  canvas.width  = Math.floor(W * dpr);
+  canvas.height = Math.floor(H * dpr);
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  computeLayout();
+  draw();
+}
+
+// ===== Пересчёт геометрии карточек под текущий размер =====
+function computeLayout() {
+  const padX = 16;
+  const padTop = 26;    // место под заголовки колонок
+  const padBottom = 12;
+  const gapX = 24;      // зазор между колонками
+  const gapY = 10;
+
+  const colW = (W - padX * 2 - gapX) / 2;
+  const rows = tasks.length;
+  const availH = H - padTop - padBottom;
+  const cardH = Math.min(72, Math.floor((availH - gapY * (rows - 1)) / rows));
+
+  layout = {
+    padX, padTop, gapY,
+    leftX: padX,
+    rightX: padX + colW + gapX,
+    colW: colW,
+    cardH: cardH,
+    radius: 10
+  };
+
+  leftCards = tasks.map((t, i) => ({
+    ...t,
+    x: layout.leftX,
+    y: layout.padTop + i * (cardH + gapY),
+    w: colW,
+    h: cardH
+  }));
+
+  // правую колонку сохраняем в её текущем порядке
+  const order = rightCards.length
+    ? rightCards.map(c => c.id)
+    : shuffle(methods).map(c => c.id);
+  const methodMap = Object.fromEntries(methods.map(m => [m.id, m]));
+  rightCards = order.map((id, i) => ({
+    ...methodMap[id],
+    x: layout.rightX,
+    y: layout.padTop + i * (cardH + gapY),
+    w: colW,
+    h: cardH
+  }));
+}
+
+// ===== Отрисовка =====
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function wrapText(text, maxWidth, font) {
+  ctx.font = font;
   const lines = [];
   text.split('\n').forEach(part => {
     const words = part.split(' ');
@@ -158,143 +251,60 @@ function wrapText(text, maxWidth) {
   return lines;
 }
 
-function buildLayout() {
-  leftCards = tasks.map((t, i) => ({
-    ...t,
-    x: LEFT_X,
-    y: TOP_Y + i * (CARD_H + GAP),
-    w: CARD_W,
-    h: CARD_H
-  }));
-
-  const shuffledMethods = shuffle(methods);
-  rightCards = shuffledMethods.map((m, i) => ({
-    ...m,
-    x: RIGHT_X,
-    y: TOP_Y + i * (CARD_H + GAP),
-    w: CARD_W,
-    h: CARD_H
-  }));
-}
-
-function reset() {
-  buildLayout();
-  selectedLeft = null;
-  matchedLeft = new Set();
-  matchedRight = new Set();
-  errors = 0;
-  wrongFlash = null;
-  msgEl.textContent = '';
-  msgEl.className = '';
-  errorsEl.textContent = '0';
-  foundEl.textContent = '0';
-  totalEl.textContent = tasks.length;
-  startTime = performance.now();
-  timeEl.textContent = '0';
-  if (timerId) clearInterval(timerId);
-  timerId = setInterval(() => {
-    timeEl.textContent = Math.floor((performance.now() - startTime) / 1000);
-  }, 200);
-  draw();
-}
-
-// ==== Геометрия ====
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-function pointInRect(mx, my, r) {
-  return mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h;
-}
-
-function hitTest(mx, my) {
-  for (const c of leftCards) if (pointInRect(mx, my, c)) return { side: 'L', card: c };
-  for (const c of rightCards) if (pointInRect(mx, my, c)) return { side: 'R', card: c };
-  return null;
-}
-
-// ==== Отрисовка ====
 function drawCard(card, opts) {
   const { selected, matched, wrong } = opts;
-
-  // тень
-  ctx.save();
-  ctx.shadowColor = matched ? 'rgba(79, 255, 176, 0.55)'
-                   : wrong ? 'rgba(255, 107, 138, 0.6)'
-                   : selected ? 'rgba(79, 227, 255, 0.6)'
-                   : 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur = matched || selected || wrong ? 22 : 12;
-  ctx.shadowOffsetY = 4;
+  const r = layout.radius;
 
   // фон
-  const grad = ctx.createLinearGradient(card.x, card.y, card.x, card.y + card.h);
-  if (matched) {
-    grad.addColorStop(0, '#114a3a');
-    grad.addColorStop(1, '#0c2f27');
-  } else if (wrong) {
-    grad.addColorStop(0, '#4a1a26');
-    grad.addColorStop(1, '#2e0f18');
-  } else if (selected) {
-    grad.addColorStop(0, '#0f3f5a');
-    grad.addColorStop(1, '#0a2233');
-  } else {
-    grad.addColorStop(0, '#16233f');
-    grad.addColorStop(1, '#0d1729');
-  }
-  ctx.fillStyle = grad;
-  roundRect(ctx, card.x, card.y, card.w, card.h, 12);
+  ctx.fillStyle = matched ? '#e6f7ec'
+                : wrong   ? '#fdecec'
+                : selected? '#e3f0ff'
+                : '#ffffff';
+  roundRect(card.x, card.y, card.w, card.h, r);
   ctx.fill();
 
   // рамка
-  ctx.shadowBlur = 0;
   ctx.lineWidth = 2;
-  ctx.strokeStyle = matched ? '#4fffb0'
-                  : wrong ? '#ff6b8a'
-                  : selected ? '#4fe3ff'
-                  : '#2b3d63';
-  roundRect(ctx, card.x, card.y, card.w, card.h, 12);
+  ctx.strokeStyle = matched ? '#4caf50'
+                  : wrong   ? '#e53935'
+                  : selected? '#1976d2'
+                  : '#cfd9e6';
+  roundRect(card.x, card.y, card.w, card.h, r);
   ctx.stroke();
-  ctx.restore();
 
-  // текст
-  ctx.fillStyle = matched ? '#c8ffe8' : '#dbe8ff';
-  ctx.font = '600 15px "Segoe UI", Arial';
+  // текст (масштабируем шрифт от высоты карточки)
+  const fs = Math.max(11, Math.min(16, Math.floor(card.h * 0.28)));
+  const font = `600 ${fs}px 'Segoe UI', Arial, sans-serif`;
+  ctx.fillStyle = matched ? '#1b5e20'
+                : wrong   ? '#b71c1c'
+                : '#1e293b';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
 
-  const padding = 14;
-  const maxW = card.w - padding * 2;
-  const lines = wrapText(card.text, maxW);
-  const lineH = 19;
+  const pad = 12;
+  const maxW = card.w - pad * 2 - (matched ? 24 : 0);
+  const lines = wrapText(card.text, maxW, font);
+  const lineH = fs + 3;
   const totalH = lines.length * lineH;
   let ty = card.y + card.h / 2 - totalH / 2 + lineH / 2;
   for (const line of lines) {
-    ctx.fillText(line, card.x + padding, ty);
+    ctx.fillText(line, card.x + pad, ty);
     ty += lineH;
   }
 
-  // галочка / крестик
+  // галочка
   if (matched) {
-    ctx.fillStyle = '#4fffb0';
-    ctx.font = 'bold 20px Arial';
+    ctx.fillStyle = '#2e7d32';
+    ctx.font = `bold ${Math.floor(fs * 1.4)}px Arial`;
     ctx.textAlign = 'right';
-    ctx.fillText('✓', card.x + card.w - 12, card.y + card.h / 2);
+    ctx.fillText('✓', card.x + card.w - 10, card.y + card.h / 2);
   }
 }
 
 function drawConnections() {
-  // Соединяем только найденные пары
-  ctx.save();
   for (const left of leftCards) {
     if (!matchedLeft.has(left.id)) continue;
-    const rightId = correctPairs[left.id];
-    const right = rightCards.find(r => r.id === rightId);
+    const right = rightCards.find(r => r.id === correctPairs[left.id]);
     if (!right) continue;
 
     const x1 = left.x + left.w;
@@ -302,59 +312,36 @@ function drawConnections() {
     const x2 = right.x;
     const y2 = right.y + right.h / 2;
 
-    const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-    grad.addColorStop(0, 'rgba(79, 255, 176, 0.8)');
-    grad.addColorStop(1, 'rgba(79, 227, 255, 0.8)');
-
-    ctx.strokeStyle = grad;
+    ctx.strokeStyle = '#4caf50';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    // кривая Безье для красоты
-    const cx1 = x1 + 60;
-    const cx2 = x2 - 60;
+    const cx = (x1 + x2) / 2;
     ctx.moveTo(x1, y1);
-    ctx.bezierCurveTo(cx1, y1, cx2, y2, x2, y2);
+    ctx.bezierCurveTo(cx, y1, cx, y2, x2, y2);
     ctx.stroke();
 
-    // точки на концах
-    ctx.fillStyle = '#4fffb0';
-    ctx.beginPath(); ctx.arc(x1, y1, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x2, y2, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#4caf50';
+    ctx.beginPath(); ctx.arc(x1, y1, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x2, y2, 4, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.restore();
 }
 
 function draw() {
-  ctx.clearRect(0, 0, W, H);
+  if (!layout.colW) return;
 
-  // фоновая сетка
-  ctx.strokeStyle = 'rgba(79, 227, 255, 0.04)';
-  ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 40) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-  }
-  for (let y = 0; y < H; y += 40) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
+  // фон
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
 
   // заголовки колонок
-  ctx.fillStyle = '#6f8bb0';
-  ctx.font = 'bold 13px "Segoe UI", Arial';
+  ctx.fillStyle = '#64748b';
+  ctx.font = `bold 12px 'Segoe UI', Arial, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText('ЗАДАЧА', LEFT_X, TOP_Y - 14);
-  ctx.fillText('СПОСОБ РЕШЕНИЯ', RIGHT_X, TOP_Y - 14);
+  ctx.fillText('ЗАДАЧА', layout.leftX, layout.padTop - 10);
+  ctx.fillText('СПОСОБ РЕШЕНИЯ', layout.rightX, layout.padTop - 10);
 
-  // центральная линия-разделитель
-  ctx.strokeStyle = 'rgba(79, 227, 255, 0.15)';
-  ctx.setLineDash([6, 8]);
-  ctx.beginPath();
-  ctx.moveTo(W / 2, 20);
-  ctx.lineTo(W / 2, H - 20);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // соединения (за карточками)
+  // соединения (под карточками)
   drawConnections();
 
   // карточки
@@ -376,98 +363,138 @@ function draw() {
     });
   }
 
-  // затемнение при победе
+  // победа
   if (matchedLeft.size === tasks.length) {
-    ctx.fillStyle = 'rgba(4, 10, 20, 0.65)';
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillRect(0, H / 2 - 40, W, 80);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffd84f';
-    ctx.font = 'bold 44px "Segoe UI", Arial';
-    ctx.fillText('🏆 Все пары найдены!', W / 2, H / 2 - 30);
+    ctx.fillStyle = '#f57f17';
+    const bigFs = Math.max(20, Math.min(34, Math.floor(W * 0.045)));
+    ctx.font = `bold ${bigFs}px 'Segoe UI', Arial, sans-serif`;
+    ctx.fillText('🏆 Все пары найдены!', W / 2, H / 2 - 12);
 
     const t = Math.floor((performance.now() - startTime) / 1000);
-    ctx.fillStyle = '#cfe3ff';
-    ctx.font = '22px "Segoe UI", Arial';
-    ctx.fillText(`Время: ${t} с   •   Ошибок: ${errors}`, W / 2, H / 2 + 30);
+    ctx.fillStyle = '#475569';
+    ctx.font = `${Math.floor(bigFs * 0.55)}px 'Segoe UI', Arial, sans-serif`;
+    ctx.fillText(`Время: ${t} с  •  Ошибок: ${errors}`, W / 2, H / 2 + 20);
   }
-
-  requestAnimationFrame(draw);
 }
 
-// ==== Логика клика ====
+// ===== Клик =====
+function pointInRect(mx, my, r) {
+  return mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h;
+}
+
 canvas.addEventListener('click', e => {
   if (matchedLeft.size === tasks.length) return;
 
   const rect = canvas.getBoundingClientRect();
   const mx = (e.clientX - rect.left) * (W / rect.width);
-  const my = (e.clientY - rect.top) * (H / rect.height);
+  const my = (e.clientY - rect.top)  * (H / rect.height);
 
-  const hit = hitTest(mx, my);
-  if (!hit) return;
-
-  // --- Клик по ЛЕВОЙ колонке ---
-  if (hit.side === 'L') {
-    if (matchedLeft.has(hit.card.id)) {
-      msgEl.textContent = 'Эта карточка уже соединена';
-      msgEl.className = 'err';
+  // левые
+  for (const c of leftCards) {
+    if (pointInRect(mx, my, c)) {
+      if (matchedLeft.has(c.id)) {
+        msgEl.textContent = 'Эта карточка уже соединена';
+        msgEl.className = 'err';
+        return;
+      }
+      selectedLeft = c.id;
+      msgEl.textContent = 'Теперь выберите способ решения справа';
+      msgEl.className = '';
+      draw();
       return;
     }
-    selectedLeft = hit.card.id;
-    msgEl.textContent = 'Теперь выберите способ решения справа';
-    msgEl.className = '';
-    return;
   }
 
-  // --- Клик по ПРАВОЙ колонке ---
-  if (hit.side === 'R') {
-    if (matchedRight.has(hit.card.id)) {
-      msgEl.textContent = 'Этот способ уже использован';
-      msgEl.className = 'err';
-      return;
-    }
-    if (!selectedLeft) {
-      msgEl.textContent = 'Сначала выберите задачу слева';
-      msgEl.className = 'err';
-      return;
-    }
-
-    // ПРОВЕРКА ПРАВИЛЬНОСТИ
-    const expected = correctPairs[selectedLeft];
-    if (expected === hit.card.id) {
-      // верно
-      matchedLeft.add(selectedLeft);
-      matchedRight.add(hit.card.id);
-      foundEl.textContent = matchedLeft.size;
-
-      if (matchedLeft.size === tasks.length) {
-        msgEl.textContent = 'Победа! Все пары найдены 🎉';
-        msgEl.className = 'win';
-      } else {
-        msgEl.textContent = 'Верно! ✓';
-        msgEl.className = 'ok';
+  // правые
+  for (const c of rightCards) {
+    if (pointInRect(mx, my, c)) {
+      if (matchedRight.has(c.id)) {
+        msgEl.textContent = 'Этот способ уже использован';
+        msgEl.className = 'err';
+        return;
       }
-      selectedLeft = null;
-    } else {
-      // ошибка
-      errors++;
-      errorsEl.textContent = errors;
-      wrongFlash = {
-        leftId: selectedLeft,
-        rightId: hit.card.id,
-        until: performance.now() + 600
-      };
-      msgEl.textContent = 'Неверно! Попробуйте другую пару';
-      msgEl.className = 'err';
-      selectedLeft = null;
+      if (!selectedLeft) {
+        msgEl.textContent = 'Сначала выберите задачу слева';
+        msgEl.className = 'err';
+        return;
+      }
+
+      const expected = correctPairs[selectedLeft];
+      if (expected === c.id) {
+        matchedLeft.add(selectedLeft);
+        matchedRight.add(c.id);
+        foundEl.textContent = matchedLeft.size;
+
+        if (matchedLeft.size === tasks.length) {
+          msgEl.textContent = 'Победа! Все пары найдены 🎉';
+          msgEl.className = 'win';
+          if (timerId) clearInterval(timerId);
+        } else {
+          msgEl.textContent = 'Верно! ✓';
+          msgEl.className = 'ok';
+        }
+        selectedLeft = null;
+      } else {
+        errors++;
+        errorsEl.textContent = errors;
+        wrongFlash = {
+          leftId: selectedLeft,
+          rightId: c.id,
+          until: performance.now() + 700
+        };
+        msgEl.textContent = 'Неверно! Попробуйте другую пару';
+        msgEl.className = 'err';
+        selectedLeft = null;
+        // перерисовать сразу и снять подсветку через 700 мс
+        setTimeout(draw, 700);
+      }
+      draw();
+      return;
     }
   }
 });
 
+// ===== Сброс =====
+function reset() {
+  selectedLeft = null;
+  matchedLeft = new Set();
+  matchedRight = new Set();
+  errors = 0;
+  wrongFlash = null;
+  msgEl.textContent = 'Кликните по карточке слева, затем по подходящей справа';
+  msgEl.className = '';
+  errorsEl.textContent = '0';
+  foundEl.textContent = '0';
+
+  // новый случайный порядок правой колонки
+  rightCards = [];
+  computeLayout();
+
+  startTime = performance.now();
+  timeEl.textContent = '0';
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(() => {
+    timeEl.textContent = Math.floor((performance.now() - startTime) / 1000);
+  }, 300);
+
+  draw();
+}
+
 document.getElementById('reset').addEventListener('click', reset);
 
-// Инициализация
+// ===== Реакция на изменение размера =====
+window.addEventListener('resize', resizeCanvas);
+if (window.ResizeObserver) {
+  new ResizeObserver(resizeCanvas).observe(board);
+}
+
+// старт
+resizeCanvas();
 reset();
 </script>
 </body>
