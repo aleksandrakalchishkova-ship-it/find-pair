@@ -55,7 +55,6 @@
             min-height: 0;
         }
 
-        /* Лоток с кусочками */
         .tray {
             width: 38%;
             background: rgba(0, 30, 60, 0.5);
@@ -80,7 +79,6 @@
             text-transform: uppercase;
         }
 
-        /* Игровое поле */
         .board {
             flex: 1;
             background: rgba(0, 30, 60, 0.3);
@@ -94,7 +92,6 @@
             grid-template-rows: repeat(3, 1fr);
         }
 
-        /* Фоновое изображение-подсказка */
         .board::before {
             content: '';
             position: absolute;
@@ -106,18 +103,16 @@
             pointer-events: none;
         }
 
-        /* Ячейки поля */
         .cell {
             border: 1px solid rgba(0, 255, 255, 0.15);
             position: relative;
             z-index: 1;
         }
 
-        /* Кусочек пазла */
         .piece {
             width: 90px;
             height: 90px;
-            background-size: 270px 270px; /* 3x3 */
+            background-size: 270px 270px;
             background-repeat: no-repeat;
             border-radius: 6px;
             cursor: grab;
@@ -141,13 +136,11 @@
             box-shadow: none;
         }
 
-        /* Адаптив для маленьких экранов */
         @media (max-width: 900px) {
             .piece { width: 70px; height: 70px; background-size: 210px 210px; }
             .tray { width: 45%; }
         }
 
-        /* Победное сообщение */
         .win-overlay {
             position: fixed;
             inset: 0;
@@ -204,7 +197,6 @@
             50% { transform: scale(1.05); }
         }
 
-        /* Кнопка обновления / перемешивания */
         .controls {
             display: flex;
             justify-content: center;
@@ -246,7 +238,6 @@
             <div class="tray-title">Кусочки</div>
         </div>
         <div class="board" id="board">
-            <!-- 9 ячеек -->
             <div class="cell" data-index="0"></div>
             <div class="cell" data-index="1"></div>
             <div class="cell" data-index="2"></div>
@@ -264,7 +255,6 @@
     </div>
 </div>
 
-<!-- Победный экран -->
 <div class="win-overlay" id="winOverlay">
     <div class="win-title">🎉 ГОТОВО! 🎉</div>
     <div class="win-subtitle">Вы собрали пазл!</div>
@@ -272,9 +262,9 @@
 </div>
 
 <script>
-    const SIZE = 90;           // Размер кусочка (должен совпадать с CSS)
-    const COLS = 3;            // 3 колонки
-    const ROWS = 3;            // 3 строки
+    const SIZE = 90;
+    const COLS = 3;
+    const ROWS = 3;
     const IMAGE_URL = 'puzzle.jpg';
 
     const tray = document.getElementById('tray');
@@ -284,23 +274,19 @@
 
     let draggedPiece = null;
 
-    // Создать один кусочек пазла
     function createPiece(index) {
         const piece = document.createElement('div');
         piece.className = 'piece';
         piece.dataset.index = index;
         piece.draggable = true;
 
-        // Позиция кусочка в исходной картинке (3x3)
         const row = Math.floor(index / COLS);
         const col = index % COLS;
 
-        // Устанавливаем фон — кусок картинки, соответствующий позиции
         piece.style.backgroundImage = `url('${IMAGE_URL}')`;
         piece.style.backgroundSize = `${COLS * SIZE}px ${ROWS * SIZE}px`;
         piece.style.backgroundPosition = `-${col * SIZE}px -${row * SIZE}px`;
 
-        // Drag-and-drop события
         piece.addEventListener('dragstart', (e) => {
             draggedPiece = piece;
             piece.classList.add('dragging');
@@ -312,7 +298,6 @@
             draggedPiece = null;
         });
 
-        // Сенсорная поддержка (для тачскринов)
         piece.addEventListener('touchstart', handleTouchStart, { passive: false });
         piece.addEventListener('touchmove', handleTouchMove, { passive: false });
         piece.addEventListener('touchend', handleTouchEnd, { passive: false });
@@ -320,18 +305,15 @@
         return piece;
     }
 
-    // Инициализация — создаём все 9 кусочков и кладём в лоток в случайном порядке
     function shufflePuzzle() {
         winOverlay.classList.remove('show');
         tray.innerHTML = '<div class="tray-title">Кусочки</div>';
         
-        // Очищаем поле
         cells.forEach(cell => {
             cell.innerHTML = '';
             cell.dataset.filled = 'false';
         });
 
-        // Создаём кусочки в правильном порядке, затем перемешиваем
         const indices = Array.from({ length: 9 }, (_, i) => i);
         for (let i = indices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -344,7 +326,6 @@
         });
     }
 
-    // Обработчики ячеек поля
     cells.forEach(cell => {
         cell.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -364,23 +345,19 @@
             const pieceIndex = parseInt(draggedPiece.dataset.index);
             const cellIndex = parseInt(cell.dataset.index);
 
-            // Проверяем, совпадает ли индекс кусочка с ячейкой
             if (pieceIndex === cellIndex) {
-                // ПРАВИЛЬНО — фиксируем кусочек в ячейке
                 cell.appendChild(draggedPiece);
                 draggedPiece.classList.add('placed');
                 draggedPiece.draggable = false;
                 cell.dataset.filled = 'true';
                 checkWin();
             } else {
-                // НЕПРАВИЛЬНО — показываем красную вспышку
                 cell.style.background = 'rgba(255, 0, 85, 0.3)';
                 setTimeout(() => { cell.style.background = ''; }, 500);
             }
         });
     });
 
-    // Проверка победы
     function checkWin() {
         let filled = 0;
         cells.forEach(cell => {
@@ -393,7 +370,6 @@
         }
     }
 
-    // --- Сенсорная поддержка (для планшетов и тач-досок) ---
     let touchPiece = null;
     let touchOffsetX = 0;
     let touchOffsetY = 0;
@@ -428,7 +404,6 @@
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         piece.style.display = '';
         
-        // Ищем ячейку под пальцем
         const cell = target ? target.closest('.cell') : null;
         
         if (cell && cell.dataset.filled !== 'true') {
@@ -436,21 +411,18 @@
             const cellIndex = parseInt(cell.dataset.index);
 
             if (pieceIndex === cellIndex) {
-                // Правильно
                 resetTouchPiece(piece);
                 cell.appendChild(piece);
                 piece.classList.add('placed');
                 cell.dataset.filled = 'true';
                 checkWin();
             } else {
-                // Неправильно — возвращаем в лоток
                 resetTouchPiece(piece);
                 tray.appendChild(piece);
                 cell.style.background = 'rgba(255, 0, 85, 0.3)';
                 setTimeout(() => { cell.style.background = ''; }, 500);
             }
         } else {
-            // Не попали в ячейку — возвращаем в лоток
             resetTouchPiece(piece);
             tray.appendChild(piece);
         }
@@ -471,7 +443,6 @@
         piece.style.pointerEvents = '';
     }
 
-    // Запуск при загрузке
     window.addEventListener('load', shufflePuzzle);
 </script>
 
