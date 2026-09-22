@@ -3,28 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark"> <!-- Принудительно темная схема для браузера -->
     <title>Взлом Портала: Суперспособность</title>
     <style>
-        /* --- СБРОС И ИЗОЛЯЦИЯ СТИЛЕЙ --- */
-        /* Эти стили применяются ТОЛЬКО внутри контейнера #superpower-app */
-        #superpower-app {
-            all: initial; /* Сбрасываем все унаследованные стили */
-            display: block;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* --- ЖЕСТКИЙ СБРОС ВСЕХ СТИЛЕЙ БРАУЗЕРА --- */
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
-            width: 100%;
-            min-height: 100vh;
-            background-color: #0a0f1d;
-            background-image: url('bg.png'); /* Ваш фон */
-            background-size: cover;
-            background-position: center;
-            color: #fff;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
         }
 
-        /* Псевдо-матрица поверх фона */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0a0f1d !important;
+        }
+
+        /* --- ОСНОВНОЙ КОНТЕЙНЕР --- */
+        #superpower-app {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0f1d;
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+            position: relative;
+        }
+
+        /* Матричный эффект поверх фона */
         #superpower-app::before {
             content: '';
             position: absolute;
@@ -34,21 +47,20 @@
             z-index: 0;
         }
 
-        #superpower-app .container {
+        .container {
             width: 90%;
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(10, 20, 40, 0.85);
+            max-width: 1100px;
+            background: rgba(10, 20, 40, 0.9);
             border: 2px solid #00ffff;
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
             position: relative;
             z-index: 1;
             backdrop-filter: blur(10px);
         }
 
-        #superpower-app h1 {
+        h1 {
             text-align: center;
             color: #00ffff;
             text-shadow: 0 0 10px #00ffff;
@@ -59,12 +71,12 @@
         }
 
         /* --- ЭТАП 1: ВЗЛОМ --- */
-        #superpower-app #stage-hack {
+        #stage-hack {
             text-align: center;
             padding: 50px 0;
         }
 
-        #superpower-app .lock-icon {
+        .lock-icon {
             font-size: 80px;
             margin-bottom: 20px;
             animation: pulse 2s infinite;
@@ -76,8 +88,7 @@
             100% { transform: scale(1); text-shadow: 0 0 10px #ff0055; }
         }
 
-        /* Кнопка взлома */
-        #superpower-app .btn-hack {
+        .btn-hack {
             background-color: transparent !important;
             border: 2px solid #ff0055 !important;
             color: #ff0055 !important;
@@ -89,16 +100,15 @@
             text-transform: uppercase;
             font-weight: bold;
             letter-spacing: 2px;
-            display: inline-block;
         }
 
-        #superpower-app .btn-hack:hover {
+        .btn-hack:hover {
             background-color: #ff0055 !important;
             color: #fff !important;
             box-shadow: 0 0 20px #ff0055;
         }
 
-        #superpower-app .key-message {
+        .key-message {
             margin-top: 20px;
             font-size: 1.2em;
             color: #ffcc00;
@@ -107,67 +117,71 @@
         }
 
         /* --- ЭТАП 2 и 3: ТРЕНАЖЕР --- */
-        #superpower-app #stage-trainer {
+        #stage-trainer {
             display: none;
         }
 
-        #superpower-app .grid-layout {
+        .grid-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-top: 20px;
         }
 
-        #superpower-app .card {
-            background: rgba(0, 255, 255, 0.05);
-            border: 1px solid #00ffff;
+        /* Убираем белые рамки и принудительно задаем фон */
+        .card {
+            background: rgba(0, 30, 60, 0.6) !important;
+            border: 1px solid #00ffff !important;
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-            display: flex;
-            flex-direction: column;
+            color: #fff !important;
         }
 
-        #superpower-app .card h3 {
+        .card h3 {
             margin-top: 0;
-            color: #00ffff;
+            color: #00ffff !important;
             border-bottom: 1px solid rgba(0, 255, 255, 0.3);
             padding-bottom: 10px;
             font-size: 1.2em;
         }
 
-        #superpower-app .equation {
+        .equation {
             font-size: 1.8em;
             text-align: center;
             margin: 20px 0;
-            color: #fff;
+            color: #fff !important;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
-        /* Поле ввода - ЯРКОЕ И ЗАМЕТНОЕ */
-        #superpower-app input[type="text"] {
+        /* --- ПОЛЕ ВВОДА (ПРИНУДИТЕЛЬНО БЕЛОЕ) --- */
+        input[type="text"] {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             background-color: #ffffff !important;
+            background: #ffffff !important;
             border: 2px solid #00ffff !important;
             border-radius: 8px;
             color: #000000 !important;
             font-size: 1.2em;
-            box-sizing: border-box;
             outline: none;
             display: block;
             margin-bottom: 5px;
+            /* Отключаем темную тему браузера */
+            color-scheme: light !important;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        #superpower-app input[type="text"]:focus {
+        input[type="text"]:focus {
             box-shadow: 0 0 15px #00ffff;
             border-color: #ffcc00 !important;
         }
 
-        /* Кнопка Проверить - ЯРКАЯ */
-        #superpower-app .btn-check {
+        /* --- КНОПКА ПРОВЕРИТЬ --- */
+        .btn-check {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             margin-top: 15px;
             background-color: #00ffff !important;
             border: none !important;
@@ -181,36 +195,37 @@
             text-align: center;
         }
 
-        #superpower-app .btn-check:hover {
+        .btn-check:hover {
             background-color: #00ccff !important;
             box-shadow: 0 0 20px #00ffff;
         }
 
-        #superpower-app .explanation {
+        .explanation {
             display: none;
             margin-top: 15px;
             padding: 15px;
             background: rgba(0, 255, 0, 0.1);
             border-left: 4px solid #00ff00;
             border-radius: 5px;
+            color: #fff !important;
         }
 
-        #superpower-app .explanation.show {
+        .explanation.show {
             display: block;
             animation: fadeIn 0.5s;
         }
 
-        #superpower-app .correct { color: #00ff00; font-weight: bold; }
-        #superpower-app .incorrect { color: #ff0055; font-weight: bold; }
+        .correct { color: #00ff00; font-weight: bold; }
+        .incorrect { color: #ff0055; font-weight: bold; }
 
         /* --- ЭТАП 4: ФИНАЛ --- */
-        #superpower-app #stage-final {
+        #stage-final {
             display: none;
             text-align: center;
             padding: 50px 0;
         }
 
-        #superpower-app .final-title {
+        .final-title {
             font-size: 3em;
             color: #ffcc00;
             text-shadow: 0 0 20px #ffcc00;
@@ -219,7 +234,7 @@
             line-height: 1.2;
         }
 
-        #superpower-app .final-subtitle {
+        .final-subtitle {
             font-size: 1.5em;
             color: #00ffff;
             line-height: 1.5;
@@ -230,18 +245,15 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Адаптив для проекторов */
         @media (max-width: 768px) {
-            #superpower-app .grid-layout { grid-template-columns: 1fr; }
-            #superpower-app .final-title { font-size: 2em; }
+            .grid-layout { grid-template-columns: 1fr; }
+            .final-title { font-size: 2em; }
         }
     </style>
 </head>
 <body>
 
-<!-- ОБЕРТКА ДЛЯ ИЗОЛЯЦИИ СТИЛЕЙ -->
 <div id="superpower-app">
-
     <div class="container">
         <!-- ЭТАП 1: ВЗЛОМ -->
         <div id="stage-hack">
@@ -260,7 +272,6 @@
             <p style="color: #aaa;">Используем ИИ для создания образовательных миров</p>
             
             <div class="grid-layout">
-                <!-- Левая карточка: Задача -->
                 <div class="card">
                     <h3>Реши квадратное уравнение:</h3>
                     <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
@@ -269,7 +280,6 @@
                     <div id="resultMessage" style="margin-top: 10px; text-align: center;"></div>
                 </div>
 
-                <!-- Правая карточка: Пояснение -->
                 <div class="card">
                     <h3>Пояснение:</h3>
                     <div id="explanationBox" class="explanation">
@@ -282,10 +292,9 @@
                 </div>
             </div>
 
-            <!-- Блок для генерации нового примера (ИИ) -->
             <div style="margin-top: 30px; border-top: 1px solid rgba(0,255,255,0.3); padding-top: 20px; text-align: center;">
                 <p style="color: #ffcc00;">🤖 Попробуйте сами! Введите промпт:</p>
-                <input type="text" id="promptInput" value="Создай тренажер по квадратным уравнениям для школьников" style="width: 60%; display: inline-block;">
+                <input type="text" id="promptInput" value="Создай тренажер по квадратным уравнениям для школьников" style="width: 60%; display: inline-block; color: #000 !important;">
                 <button class="btn-check" style="width: auto; display: inline-block; padding: 12px 30px; margin-left: 10px;" onclick="generateNewTask()">Отправить</button>
                 <p style="color: #00ff00; font-size: 0.9em; margin-top: 10px;" id="aiStatus"></p>
             </div>
@@ -301,22 +310,18 @@
             <p style="margin-top: 40px; color: #ffcc00; font-size: 1.2em;">✨ Это и есть ваша суперспособность ✨</p>
         </div>
     </div>
-
 </div>
 
 <script>
-    // --- ЛОГИКА ЭТАПА 1 ---
     function hackPortal() {
         const keyMsg = document.getElementById('keyMessage');
         keyMsg.style.display = 'block';
-        
         setTimeout(() => {
             document.getElementById('stage-hack').style.display = 'none';
             document.getElementById('stage-trainer').style.display = 'block';
         }, 2500);
     }
 
-    // --- ЛОГИКА ЭТАПА 2: ТРЕНАЖЕР ---
     let currentEquation = { a: 1, b: -5, c: 6 };
     let correctRoots = [2, 3];
 
@@ -357,21 +362,17 @@
         expResult.innerHTML = `x₁ = ${r1}, x₂ = ${r2}`;
     }
 
-    // --- ЛОГИКА ЭТАПА 3: ГЕНЕРАЦИЯ НОВОГО ПРИМЕРА ---
     function generateNewTask() {
         const prompt = document.getElementById('promptInput').value;
         const status = document.getElementById('aiStatus');
-        
         if (!prompt) return;
 
         status.innerHTML = "⏳ Генерация нового тренажера...";
         
         setTimeout(() => {
             status.innerHTML = "✅ Тренажер сгенерирован!";
-            
             const r1 = Math.floor(Math.random() * 8) - 4;
             const r2 = Math.floor(Math.random() * 8) - 4;
-            
             const b = -(r1 + r2);
             const c = r1 * r2;
             
@@ -390,7 +391,6 @@
                 document.getElementById('stage-trainer').style.display = 'none';
                 document.getElementById('stage-final').style.display = 'block';
             }, 3000);
-
         }, 1500);
     }
 </script>
