@@ -5,51 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Взлом Портала: Суперспособность</title>
     <style>
-        /* --- ОБЩИЕ СТИЛИ (КИБЕРПАНК) --- */
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0a0f1d;
-            color: #fff;
+        /* --- СБРОС И ИЗОЛЯЦИЯ СТИЛЕЙ --- */
+        /* Эти стили применяются ТОЛЬКО внутри контейнера #superpower-app */
+        #superpower-app {
+            all: initial; /* Сбрасываем все унаследованные стили */
+            display: block;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            box-sizing: border-box;
+            width: 100%;
             min-height: 100vh;
+            background-color: #0a0f1d;
+            background-image: url('bg.png'); /* Ваш фон */
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+            padding: 20px;
+            position: relative;
             overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 50%, #1a2a4a 0%, #0a0f1d 80%),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.05) 2px, rgba(0, 255, 255, 0.05) 4px);
         }
 
-        .container {
+        /* Псевдо-матрица поверх фона */
+        #superpower-app::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.05) 2px, rgba(0, 255, 255, 0.05) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #superpower-app .container {
             width: 90%;
             max-width: 1000px;
-            background: rgba(10, 20, 40, 0.8);
+            margin: 0 auto;
+            background: rgba(10, 20, 40, 0.85);
             border: 2px solid #00ffff;
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
             position: relative;
+            z-index: 1;
             backdrop-filter: blur(10px);
         }
 
-        h1 {
+        #superpower-app h1 {
             text-align: center;
             color: #00ffff;
             text-shadow: 0 0 10px #00ffff;
             font-size: 2em;
             margin-bottom: 20px;
             letter-spacing: 2px;
+            font-weight: bold;
         }
 
         /* --- ЭТАП 1: ВЗЛОМ --- */
-        #stage-hack {
+        #superpower-app #stage-hack {
             text-align: center;
             padding: 50px 0;
         }
 
-        .lock-icon {
+        #superpower-app .lock-icon {
             font-size: 80px;
             margin-bottom: 20px;
             animation: pulse 2s infinite;
@@ -61,10 +76,11 @@
             100% { transform: scale(1); text-shadow: 0 0 10px #ff0055; }
         }
 
-        .btn-hack {
-            background: transparent;
-            border: 2px solid #ff0055;
-            color: #ff0055;
+        /* Кнопка взлома */
+        #superpower-app .btn-hack {
+            background-color: transparent !important;
+            border: 2px solid #ff0055 !important;
+            color: #ff0055 !important;
             padding: 15px 40px;
             font-size: 1.5em;
             border-radius: 10px;
@@ -73,15 +89,16 @@
             text-transform: uppercase;
             font-weight: bold;
             letter-spacing: 2px;
+            display: inline-block;
         }
 
-        .btn-hack:hover {
-            background: #ff0055;
-            color: #fff;
+        #superpower-app .btn-hack:hover {
+            background-color: #ff0055 !important;
+            color: #fff !important;
             box-shadow: 0 0 20px #ff0055;
         }
 
-        .key-message {
+        #superpower-app .key-message {
             margin-top: 20px;
             font-size: 1.2em;
             color: #ffcc00;
@@ -90,33 +107,36 @@
         }
 
         /* --- ЭТАП 2 и 3: ТРЕНАЖЕР --- */
-        #stage-trainer {
+        #superpower-app #stage-trainer {
             display: none;
         }
 
-        .grid-layout {
+        #superpower-app .grid-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-top: 20px;
         }
 
-        .card {
+        #superpower-app .card {
             background: rgba(0, 255, 255, 0.05);
             border: 1px solid #00ffff;
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
         }
 
-        .card h3 {
+        #superpower-app .card h3 {
             margin-top: 0;
             color: #00ffff;
             border-bottom: 1px solid rgba(0, 255, 255, 0.3);
             padding-bottom: 10px;
+            font-size: 1.2em;
         }
 
-        .equation {
+        #superpower-app .equation {
             font-size: 1.8em;
             text-align: center;
             margin: 20px 0;
@@ -124,42 +144,49 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
-        input[type="text"] {
+        /* Поле ввода - ЯРКОЕ И ЗАМЕТНОЕ */
+        #superpower-app input[type="text"] {
             width: 100%;
             padding: 12px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #00ffff;
+            background-color: #ffffff !important;
+            border: 2px solid #00ffff !important;
             border-radius: 8px;
-            color: #fff;
+            color: #000000 !important;
             font-size: 1.2em;
             box-sizing: border-box;
             outline: none;
+            display: block;
+            margin-bottom: 5px;
         }
 
-        input[type="text"]:focus {
-            box-shadow: 0 0 10px #00ffff;
+        #superpower-app input[type="text"]:focus {
+            box-shadow: 0 0 15px #00ffff;
+            border-color: #ffcc00 !important;
         }
 
-        .btn-check {
+        /* Кнопка Проверить - ЯРКАЯ */
+        #superpower-app .btn-check {
             width: 100%;
             padding: 12px;
             margin-top: 15px;
-            background: #00ffff;
-            border: none;
+            background-color: #00ffff !important;
+            border: none !important;
             border-radius: 8px;
-            color: #0a0f1d;
+            color: #0a0f1d !important;
             font-size: 1.2em;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
+            display: block;
+            text-align: center;
         }
 
-        .btn-check:hover {
-            background: #00ccff;
+        #superpower-app .btn-check:hover {
+            background-color: #00ccff !important;
             box-shadow: 0 0 20px #00ffff;
         }
 
-        .explanation {
+        #superpower-app .explanation {
             display: none;
             margin-top: 15px;
             padding: 15px;
@@ -168,29 +195,31 @@
             border-radius: 5px;
         }
 
-        .explanation.show {
+        #superpower-app .explanation.show {
             display: block;
             animation: fadeIn 0.5s;
         }
 
-        .correct { color: #00ff00; font-weight: bold; }
-        .incorrect { color: #ff0055; font-weight: bold; }
+        #superpower-app .correct { color: #00ff00; font-weight: bold; }
+        #superpower-app .incorrect { color: #ff0055; font-weight: bold; }
 
         /* --- ЭТАП 4: ФИНАЛ --- */
-        #stage-final {
+        #superpower-app #stage-final {
             display: none;
             text-align: center;
             padding: 50px 0;
         }
 
-        .final-title {
+        #superpower-app .final-title {
             font-size: 3em;
             color: #ffcc00;
             text-shadow: 0 0 20px #ffcc00;
             margin-bottom: 20px;
+            font-weight: bold;
+            line-height: 1.2;
         }
 
-        .final-subtitle {
+        #superpower-app .final-subtitle {
             font-size: 1.5em;
             color: #00ffff;
             line-height: 1.5;
@@ -203,71 +232,76 @@
 
         /* Адаптив для проекторов */
         @media (max-width: 768px) {
-            .grid-layout { grid-template-columns: 1fr; }
-            .final-title { font-size: 2em; }
+            #superpower-app .grid-layout { grid-template-columns: 1fr; }
+            #superpower-app .final-title { font-size: 2em; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- ЭТАП 1: ВЗЛОМ -->
-    <div id="stage-hack">
-        <div class="lock-icon">🔒</div>
-        <h1>ДОСТУП ОГРАНИЧЕН</h1>
-        <p style="color: #aaa; margin-bottom: 30px;">Для открытия портала требуется ключ шифрования</p>
-        <button class="btn-hack" onclick="hackPortal()">ВЗЛОМАТЬ ПОРТАЛ</button>
-        <div class="key-message" id="keyMessage">
-            🔑 КЛЮЧ: <strong>ПРОМПТ</strong>
-        </div>
-    </div>
+<!-- ОБЕРТКА ДЛЯ ИЗОЛЯЦИИ СТИЛЕЙ -->
+<div id="superpower-app">
 
-    <!-- ЭТАП 2 и 3: ТРЕНАЖЕР -->
-    <div id="stage-trainer">
-        <h1 style="font-size: 1.5em; text-align: left;">⚡ АКТИВАЦИЯ СУПЕРСПОСОБНОСТИ</h1>
-        <p style="color: #aaa;">Используем ИИ для создания образовательных миров</p>
-        
-        <div class="grid-layout">
-            <!-- Левая карточка: Задача -->
-            <div class="card">
-                <h3>Реши квадратное уравнение:</h3>
-                <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
-                <input type="text" id="userAnswer" placeholder="Введите ответ (например: 2, 3)">
-                <button class="btn-check" onclick="checkAnswer()">Проверить</button>
-                <div id="resultMessage" style="margin-top: 10px; text-align: center;"></div>
-            </div>
-
-            <!-- Правая карточка: Пояснение -->
-            <div class="card">
-                <h3>Пояснение:</h3>
-                <div id="explanationBox" class="explanation">
-                    <p id="expText"></p>
-                    <p class="correct" id="expResult"></p>
-                </div>
-                <div id="emptyExp" style="color: #666; text-align: center; margin-top: 50px;">
-                    Нажмите "Проверить", чтобы увидеть решение
-                </div>
+    <div class="container">
+        <!-- ЭТАП 1: ВЗЛОМ -->
+        <div id="stage-hack">
+            <div class="lock-icon">🔒</div>
+            <h1>ДОСТУП ОГРАНИЧЕН</h1>
+            <p style="color: #aaa; margin-bottom: 30px;">Для открытия портала требуется ключ шифрования</p>
+            <button class="btn-hack" onclick="hackPortal()">ВЗЛОМАТЬ ПОРТАЛ</button>
+            <div class="key-message" id="keyMessage">
+                🔑 КЛЮЧ: <strong>ПРОМПТ</strong>
             </div>
         </div>
 
-        <!-- Блок для генерации нового примера (ИИ) -->
-        <div style="margin-top: 30px; border-top: 1px solid rgba(0,255,255,0.3); padding-top: 20px; text-align: center;">
-            <p style="color: #ffcc00;">🤖 Попробуйте сами! Введите промпт:</p>
-            <input type="text" id="promptInput" value="Создай тренажер по квадратным уравнениям для школьников" style="width: 60%; display: inline-block;">
-            <button class="btn-check" style="width: auto; display: inline-block; padding: 12px 30px;" onclick="generateNewTask()">Отправить</button>
-            <p style="color: #00ff00; font-size: 0.9em; margin-top: 10px;" id="aiStatus"></p>
+        <!-- ЭТАП 2 и 3: ТРЕНАЖЕР -->
+        <div id="stage-trainer">
+            <h1 style="font-size: 1.5em; text-align: left;">⚡ АКТИВАЦИЯ СУПЕРСПОСОБНОСТИ</h1>
+            <p style="color: #aaa;">Используем ИИ для создания образовательных миров</p>
+            
+            <div class="grid-layout">
+                <!-- Левая карточка: Задача -->
+                <div class="card">
+                    <h3>Реши квадратное уравнение:</h3>
+                    <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
+                    <input type="text" id="userAnswer" placeholder="Введите ответ (например: 2, 3)">
+                    <button class="btn-check" onclick="checkAnswer()">Проверить</button>
+                    <div id="resultMessage" style="margin-top: 10px; text-align: center;"></div>
+                </div>
+
+                <!-- Правая карточка: Пояснение -->
+                <div class="card">
+                    <h3>Пояснение:</h3>
+                    <div id="explanationBox" class="explanation">
+                        <p id="expText"></p>
+                        <p class="correct" id="expResult"></p>
+                    </div>
+                    <div id="emptyExp" style="color: #666; text-align: center; margin-top: 50px;">
+                        Нажмите "Проверить", чтобы увидеть решение
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок для генерации нового примера (ИИ) -->
+            <div style="margin-top: 30px; border-top: 1px solid rgba(0,255,255,0.3); padding-top: 20px; text-align: center;">
+                <p style="color: #ffcc00;">🤖 Попробуйте сами! Введите промпт:</p>
+                <input type="text" id="promptInput" value="Создай тренажер по квадратным уравнениям для школьников" style="width: 60%; display: inline-block;">
+                <button class="btn-check" style="width: auto; display: inline-block; padding: 12px 30px; margin-left: 10px;" onclick="generateNewTask()">Отправить</button>
+                <p style="color: #00ff00; font-size: 0.9em; margin-top: 10px;" id="aiStatus"></p>
+            </div>
+        </div>
+
+        <!-- ЭТАП 4: ФИНАЛ -->
+        <div id="stage-final">
+            <div class="final-title">ВЫ — НЕ ИСПОЛНИТЕЛЬ.<br>ВЫ — ТВОРЕЦ.</div>
+            <div class="final-subtitle">
+                Мы не учим "быть учителем".<br>
+                Мы учим <strong>управлять вниманием и знаниями</strong> с помощью кода и математики.
+            </div>
+            <p style="margin-top: 40px; color: #ffcc00; font-size: 1.2em;">✨ Это и есть ваша суперспособность ✨</p>
         </div>
     </div>
 
-    <!-- ЭТАП 4: ФИНАЛ -->
-    <div id="stage-final">
-        <div class="final-title">ВЫ — НЕ ИСПОЛНИТЕЛЬ.<br>ВЫ — ТВОРЕЦ.</div>
-        <div class="final-subtitle">
-            Мы не учим "быть учителем".<br>
-            Мы учим <strong>управлять вниманием и знаниями</strong> с помощью кода и математики.
-        </div>
-        <p style="margin-top: 40px; color: #ffcc00; font-size: 1.2em;">✨ Это и есть ваша суперспособность ✨</p>
-    </div>
 </div>
 
 <script>
@@ -276,7 +310,6 @@
         const keyMsg = document.getElementById('keyMessage');
         keyMsg.style.display = 'block';
         
-        // Через 2 секунды после появления ключа переходим к тренажеру
         setTimeout(() => {
             document.getElementById('stage-hack').style.display = 'none';
             document.getElementById('stage-trainer').style.display = 'block';
@@ -295,28 +328,23 @@
         const expResult = document.getElementById('expResult');
         const emptyExp = document.getElementById('emptyExp');
 
-        // Очищаем ввод от пробелов и разбиваем по запятой
         const userRoots = userInput.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)).sort((a,b) => a-b);
         const sortedCorrect = [...correctRoots].sort((a,b) => a-b);
 
-        // Проверка
         let isCorrect = false;
         if (userRoots.length === sortedCorrect.length) {
             isCorrect = userRoots.every((val, index) => val === sortedCorrect[index]);
         }
 
-        // Вывод результата
         if (isCorrect) {
             resultMsg.innerHTML = '<span class="correct">✅ Верно!</span>';
         } else {
             resultMsg.innerHTML = '<span class="incorrect">❌ Попробуйте еще раз</span>';
         }
 
-        // Показываем пояснение
         expBox.classList.add('show');
         emptyExp.style.display = 'none';
 
-        // Формируем текст пояснения
         const b = currentEquation.b;
         const c = currentEquation.c;
         const r1 = correctRoots[0];
@@ -338,38 +366,32 @@
 
         status.innerHTML = "⏳ Генерация нового тренажера...";
         
-        // Имитация задержки ИИ
         setTimeout(() => {
             status.innerHTML = "✅ Тренажер сгенерирован!";
             
-            // Генерируем случайное квадратное уравнение с целыми корнями
-            const r1 = Math.floor(Math.random() * 8) - 4; // от -4 до 4
+            const r1 = Math.floor(Math.random() * 8) - 4;
             const r2 = Math.floor(Math.random() * 8) - 4;
             
-            // Формула: (x - r1)(x - r2) = x^2 - (r1+r2)x + r1*r2
             const b = -(r1 + r2);
             const c = r1 * r2;
             
             currentEquation = { a: 1, b: b, c: c };
             correctRoots = [r1, r2];
 
-            // Обновляем интерфейс
             const eqDisplay = document.getElementById('equationDisplay');
             eqDisplay.innerHTML = `x² ${b > 0 ? '+' : ''}${b}x ${c > 0 ? '+' : ''}${c} = 0`;
             
-            // Сбрасываем поля
             document.getElementById('userAnswer').value = '';
             document.getElementById('resultMessage').innerHTML = '';
             document.getElementById('explanationBox').classList.remove('show');
             document.getElementById('emptyExp').style.display = 'block';
 
-            // Через 2 секунды показываем финал (чтобы дать время удивиться)
             setTimeout(() => {
                 document.getElementById('stage-trainer').style.display = 'none';
                 document.getElementById('stage-final').style.display = 'block';
             }, 3000);
 
-        }, 1500); // Задержка 1.5 секунды
+        }, 1500);
     }
 </script>
 
