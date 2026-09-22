@@ -304,7 +304,6 @@
                 <div class="card">
                     <h3>Реши квадратное уравнение:</h3>
                     <div class="equation" id="equationDisplay">x² - 5x + 6 = 0</div>
-                    <!-- Подсказка теперь нейтральная, без спойлера -->
                     <input type="text" id="userAnswer" placeholder="Введите два корня через запятую">
                     <button class="btn-check" onclick="checkAnswer()">Проверить</button>
                     <div id="resultMessage" style="margin-top: 6px; text-align: center; font-size: 0.85em;"></div>
@@ -354,7 +353,7 @@
         }, 2500);
     }
 
-    // Красивое форматирование уравнения
+    // Красивое форматирование уравнения: x² + 5x + 6 = 0
     function formatEquation(b, c) {
         let result = "x² ";
         if (b !== 0) {
@@ -437,7 +436,7 @@
         }
     }
 
-    // Генерация случайного уравнения без нулевых b и c
+    // Генерация случайного уравнения с ненулевыми b и c
     function generateRandomEquation() {
         let r1, r2, b, c;
         do {
