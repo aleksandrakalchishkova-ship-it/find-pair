@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Собери пазл</title>
+    <title>Собери пазл на время</title>
     <style>
         * {
             margin: 0;
@@ -29,11 +29,13 @@
             height: 100vh;
             padding: 10px 15px;
             background: radial-gradient(circle at 50% 30%, #14264a 0%, #0a0f1d 80%);
+            position: relative;
         }
 
         .header {
             text-align: center;
             margin-bottom: 8px;
+            width: 100%;
         }
 
         .header h1 {
@@ -49,11 +51,38 @@
             font-size: 0.8em;
         }
 
+        /* Таймер в правом верхнем углу */
+        .timer {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(0, 30, 60, 0.85);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 8px 18px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            font-family: 'Courier New', monospace;
+            z-index: 50;
+        }
+
+        .timer.active {
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ffcc00;
+            border-color: #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+        }
+
         .game-area {
             display: flex;
             gap: 20px;
             align-items: flex-start;
             justify-content: center;
+            position: relative;
         }
 
         /* Лоток */
@@ -82,7 +111,7 @@
             text-transform: uppercase;
         }
 
-        /* Игровое поле 3x3 = 360x360 */
+        /* Игровое поле */
         .board {
             width: 360px;
             height: 360px;
@@ -97,7 +126,6 @@
             grid-template-rows: repeat(3, 120px);
         }
 
-        /* Фоновая подсказка */
         .board::before {
             content: '';
             position: absolute;
@@ -109,7 +137,6 @@
             pointer-events: none;
         }
 
-        /* Ячейка */
         .cell {
             width: 120px;
             height: 120px;
@@ -125,11 +152,10 @@
             border-color: rgba(0, 255, 255, 0.5);
         }
 
-        /* Кусочек пазла — ВСЕГДА 120x120 */
         .piece {
             width: 120px;
             height: 120px;
-            background-image: url('puzzle.jpg?v=2');
+            background-image: url('puzzle.jpg');
             background-size: 360px 360px;
             background-repeat: no-repeat;
             border-radius: 4px;
@@ -160,6 +186,79 @@
             transform: none;
         }
 
+        /* Заблокированные кусочки (до старта) */
+        .piece.locked {
+            cursor: not-allowed;
+            opacity: 0.5;
+            filter: grayscale(0.5);
+        }
+
+        .piece.locked:hover {
+            transform: none;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Оверлей со стартовой кнопкой */
+        .start-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 10, 25, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 200;
+            animation: fadeIn 0.4s;
+            backdrop-filter: blur(6px);
+        }
+
+        .start-overlay.hidden {
+            display: none;
+        }
+
+        .start-title {
+            font-size: 2.2em;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .start-subtitle {
+            font-size: 1.1em;
+            color: #8899bb;
+            margin-bottom: 35px;
+            text-align: center;
+        }
+
+        .btn-start {
+            background: #00ffff;
+            color: #0a0f1d;
+            border: none;
+            padding: 20px 60px;
+            font-size: 1.5em;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing: 3px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            animation: pulseBtn 2s infinite;
+        }
+
+        .btn-start:hover {
+            background: #00ccff;
+            transform: scale(1.05);
+            box-shadow: 0 0 50px #00ffff;
+        }
+
+        @keyframes pulseBtn {
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 50px rgba(0, 255, 255, 0.9); }
+        }
+
         /* Победный экран */
         .win-overlay {
             position: fixed;
@@ -169,7 +268,7 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            z-index: 100;
+            z-index: 300;
             animation: fadeIn 0.6s;
         }
 
@@ -184,10 +283,19 @@
             animation: pulseWin 1.5s infinite;
         }
 
+        .win-time {
+            font-size: 2.5em;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+            margin-bottom: 30px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+
         .win-subtitle {
             font-size: 1.3em;
-            color: #00ffff;
-            margin-bottom: 40px;
+            color: #8899bb;
+            margin-bottom: 30px;
         }
 
         .btn-restart {
@@ -249,9 +357,11 @@
 
 <div class="app">
     <div class="header">
-        <h1>🧩 СОБЕРИ ПАЗЛ</h1>
-        <p>Перетащи кусочки из лотка на игровое поле</p>
+        <h1>🧩 СОБЕРИ ПАЗЛ НА ВРЕМЯ</h1>
+        <p>Нажмите «СТАРТ», затем перетаскивайте кусочки на поле</p>
     </div>
+
+    <div class="timer" id="timer">00:00</div>
 
     <div class="game-area">
         <div class="tray" id="tray">
@@ -271,45 +381,109 @@
     </div>
 
     <div class="controls">
-        <button class="btn-shuffle" onclick="shufflePuzzle()">🔄 Перемешать заново</button>
+        <button class="btn-shuffle" onclick="resetGame()">🔄 Перемешать заново</button>
     </div>
 </div>
 
+<!-- Оверлей со стартовой кнопкой -->
+<div class="start-overlay" id="startOverlay">
+    <div class="start-title">🧩 ГОТОВЫ?</div>
+    <div class="start-subtitle">Нажмите «СТАРТ» — и таймер запустится</div>
+    <button class="btn-start" onclick="startGame()">▶ СТАРТ</button>
+</div>
+
+<!-- Победный экран -->
 <div class="win-overlay" id="winOverlay">
     <div class="win-title">🎉 ГОТОВО! 🎉</div>
+    <div class="win-time" id="finalTime">00:00</div>
     <div class="win-subtitle">Вы собрали пазл!</div>
-    <button class="btn-restart" onclick="shufflePuzzle()">Собрать заново</button>
+    <button class="btn-restart" onclick="resetGame()">Собрать заново</button>
 </div>
 
 <script>
     const SIZE = 120;
     const COLS = 3;
     const ROWS = 3;
-    const IMAGE_URL = 'puzzle.jpg?v=2';
+    const IMAGE_URL = 'puzzle.jpg';
 
     const tray = document.getElementById('tray');
     const board = document.getElementById('board');
     const cells = board.querySelectorAll('.cell');
     const winOverlay = document.getElementById('winOverlay');
+    const startOverlay = document.getElementById('startOverlay');
+    const timerEl = document.getElementById('timer');
+    const finalTimeEl = document.getElementById('finalTime');
 
     let draggedPiece = null;
+    let gameStarted = false;
+    let timerInterval = null;
+    let startTime = 0;
+    let elapsedSeconds = 0;
 
+    // --- СЕКУНДОМЕР ---
+    function startTimer() {
+        startTime = Date.now();
+        elapsedSeconds = 0;
+        timerEl.textContent = '00:00';
+        timerEl.classList.add('active');
+        timerInterval = setInterval(() => {
+            elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            timerEl.textContent = formatTime(elapsedSeconds);
+        }, 200);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerEl.classList.remove('active');
+    }
+
+    function resetTimer() {
+        stopTimer();
+        elapsedSeconds = 0;
+        timerEl.textContent = '00:00';
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    // --- СТАРТ ИГРЫ ---
+    function startGame() {
+        startOverlay.classList.add('hidden');
+        gameStarted = true;
+        // Разблокируем все кусочки
+        document.querySelectorAll('.piece').forEach(p => {
+            p.classList.remove('locked');
+            p.draggable = true;
+        });
+        startTimer();
+    }
+
+    // --- СОЗДАНИЕ КУСОЧКА ---
     function createPiece(index) {
         const piece = document.createElement('div');
         piece.className = 'piece';
         piece.dataset.index = index;
-        piece.draggable = true;
+        piece.draggable = false; // изначально заблокирован
+        piece.classList.add('locked');
 
         const row = Math.floor(index / COLS);
         const col = index % COLS;
 
-        // Размер фона — 360x360 (3 кусочка по 120)
-        // background-position сдвигает картинку на нужный кусочек
         piece.style.backgroundImage = `url('${IMAGE_URL}')`;
         piece.style.backgroundSize = `${COLS * SIZE}px ${ROWS * SIZE}px`;
         piece.style.backgroundPosition = `-${col * SIZE}px -${row * SIZE}px`;
 
         piece.addEventListener('dragstart', (e) => {
+            if (!gameStarted) {
+                e.preventDefault();
+                return;
+            }
             draggedPiece = piece;
             piece.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
@@ -327,10 +501,9 @@
         return piece;
     }
 
+    // --- ПЕРЕМЕШИВАНИЕ ---
     function shufflePuzzle() {
-        winOverlay.classList.remove('show');
         tray.innerHTML = '<div class="tray-title">Кусочки</div>';
-        
         cells.forEach(cell => {
             cell.innerHTML = '';
             cell.dataset.filled = 'false';
@@ -348,9 +521,20 @@
         });
     }
 
+    // --- СБРОС ИГРЫ ---
+    function resetGame() {
+        gameStarted = false;
+        resetTimer();
+        winOverlay.classList.remove('show');
+        startOverlay.classList.remove('hidden');
+        shufflePuzzle();
+    }
+
+    // --- ОБРАБОТЧИКИ ЯЧЕЕК ---
     cells.forEach(cell => {
         cell.addEventListener('dragover', (e) => {
             e.preventDefault();
+            if (!gameStarted) return;
             if (cell.dataset.filled === 'true') return;
             cell.style.background = 'rgba(0, 255, 255, 0.15)';
         });
@@ -362,7 +546,7 @@
         cell.addEventListener('drop', (e) => {
             e.preventDefault();
             cell.style.background = '';
-            if (!draggedPiece) return;
+            if (!gameStarted || !draggedPiece) return;
 
             const pieceIndex = parseInt(draggedPiece.dataset.index);
             const cellIndex = parseInt(cell.dataset.index);
@@ -380,25 +564,29 @@
         });
     });
 
+    // --- ПРОВЕРКА ПОБЕДЫ ---
     function checkWin() {
         let filled = 0;
         cells.forEach(cell => {
             if (cell.dataset.filled === 'true') filled++;
         });
         if (filled === 9) {
+            stopTimer();
+            finalTimeEl.textContent = formatTime(elapsedSeconds);
             setTimeout(() => {
                 winOverlay.classList.add('show');
             }, 400);
         }
     }
 
-    // --- Сенсорная поддержка ---
+    // --- СЕНСОРНАЯ ПОДДЕРЖКА ---
     let touchPiece = null;
     let touchOffsetX = 0;
     let touchOffsetY = 0;
 
     function handleTouchStart(e) {
         const piece = e.currentTarget;
+        if (!gameStarted) return;
         if (piece.classList.contains('placed')) return;
         touchPiece = piece;
         const rect = piece.getBoundingClientRect();
@@ -422,13 +610,13 @@
         if (!touchPiece) return;
         const piece = touchPiece;
         const touch = e.changedTouches[0];
-        
+
         piece.style.display = 'none';
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         piece.style.display = '';
-        
+
         const cell = target ? target.closest('.cell') : null;
-        
+
         if (cell && cell.dataset.filled !== 'true') {
             const pieceIndex = parseInt(piece.dataset.index);
             const cellIndex = parseInt(cell.dataset.index);
@@ -449,7 +637,7 @@
             resetTouchPiece(piece);
             tray.appendChild(piece);
         }
-        
+
         touchPiece = null;
     }
 
@@ -466,7 +654,10 @@
         piece.style.pointerEvents = '';
     }
 
-    window.addEventListener('load', shufflePuzzle);
+    // --- ЗАПУСК ---
+    window.addEventListener('load', () => {
+        shufflePuzzle();
+    });
 </script>
 
 </body>
